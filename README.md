@@ -2,6 +2,8 @@
 
 <img src="https://user-images.githubusercontent.com/547220/146074557-339fc1e4-f83e-4cbb-b885-74cb6b52fd46.png" width="200px" alt="A drawing of a cute gopher holding a wrench">
 
+![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/toolctl/toolctl/CI/main) ![Codecov](https://img.shields.io/codecov/c/gh/toolctl/toolctl) ![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability/toolctl/toolctl) ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/toolctl/toolctl) ![GitHub](https://img.shields.io/github/license/toolctl/toolctl)
+
 `toolctl` helps you manage your tools on Linux and macOS.
 
 ## How do I install `toolctl`?
