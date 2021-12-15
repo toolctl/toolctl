@@ -14,19 +14,6 @@ In the not-too-distant future, we will also provide an easy-to-use setup script 
 
 ## What can I do with `toolctl`?
 
-### Get information about tools
-
-```text
-❯ toolctl info k9s
-✨ k9s v0.25.8: Kubernetes CLI to manage your clusters in style
-🏠 https://k9scli.io/
-❌ Not installed
-
-❯ toolctl info kubectl
-✨ kubectl v1.23.0: The Kubernetes command-line tool
-🔄 kubectl v1.21.2 is installed at /usr/local/bin/kubectl
-```
-
 ### Install the latest versions of a tool
 
 ```text
@@ -41,6 +28,23 @@ In the not-too-distant future, we will also provide an easy-to-use setup script 
 ❯ toolctl install kustomize@3.9.4
 👷 Installing v3.9.4 ...
 🎉 Successfully installed
+```
+
+### Get information about tools
+
+```text
+❯ toolctl info k9s
+✨ k9s v0.25.8: Kubernetes CLI to manage your clusters in style
+✅ k9s v0.25.8 is installed at /usr/local/bin/k9s
+
+❯ toolctl info kubectl
+✨ kubectl v1.23.0: The Kubernetes command-line tool
+🔄 kubectl v1.21.2 is installed at /usr/local/bin/kubectl
+
+❯ toolctl info kuberlr
+✨ kuberlr v0.4.1: Simple management of multiple kubectl versions
+🏠 https://github.com/flavio/kuberlr
+❌ Not installed
 ```
 
 ### Check if your tools are up-to-date
