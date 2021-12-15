@@ -21,7 +21,7 @@ Examples:
   toolctl install minikube
 
 Available Commands:
-  completion  generate the autocompletion script for the specified shell
+  completion  Generate the autocompletion script for the specified shell
   help        Help about any command
   info        Information about one or more tools
   install     Install one or more tools
