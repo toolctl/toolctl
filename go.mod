@@ -9,8 +9,8 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cobra v1.2.1
-	github.com/spf13/viper v1.9.0
-	golang.org/x/sys v0.0.0-20211205182925-97ca703d548d
+	github.com/spf13/viper v1.10.1
+	golang.org/x/sys v0.0.0-20211210111614-af8b64212486
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )
 

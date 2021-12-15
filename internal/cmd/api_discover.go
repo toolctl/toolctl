@@ -88,8 +88,8 @@ func discover(toolctlWriter io.Writer, toolctlAPI api.ToolctlAPI, tool api.Tool)
 	// Discover new versions
 	var (
 		url                  string
-		componentToIncrement string = "patch"
-		missCounter          int    = 0
+		componentToIncrement = "patch"
+		missCounter          int
 	)
 
 	for {
@@ -234,9 +234,8 @@ func setInitialVersion(toolctlAPI api.ToolctlAPI, noa api.Tool) (version *semver
 	if err != nil {
 		if !errors.Is(err, api.NotFoundError{}) {
 			return
-		} else {
-			version = semver.MustParse("0.0.0")
 		}
+		version = semver.MustParse("0.0.0")
 	}
 	version, err = incrementVersion(version, "patch")
 	if err != nil {
