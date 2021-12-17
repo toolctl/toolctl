@@ -9,18 +9,16 @@ import (
 )
 
 var (
-	shortFlag    bool
-	gitVersion   = "v0.0.0-dev"
-	gitCommit    = "da39a3ee5e6b4b0d3255bfef95601890afd80709"
-	gitTreeState = "unknown"
-	buildDate    = "0000-00-00T00:00:00Z"
+	shortFlag  bool
+	gitVersion = "v0.0.0-dev"
+	gitCommit  = "da39a3ee5e6b4b0d3255bfef95601890afd80709"
+	buildDate  = "0000-00-00T00:00:00Z"
 )
 
 type VersionInfo struct {
-	GitVersion   string
-	GitCommit    string
-	GitTreeState string
-	BuildDate    string
+	GitVersion string
+	GitCommit  string
+	BuildDate  string
 }
 
 func newVersionCmd(toolctlWriter io.Writer) *cobra.Command {
@@ -52,10 +50,9 @@ func printVersion(toolctlWriter io.Writer) (err error) {
 	} else {
 		var versionInfo []byte
 		versionInfo, err = json.Marshal(VersionInfo{
-			GitVersion:   gitVersion,
-			GitCommit:    gitCommit,
-			GitTreeState: gitTreeState,
-			BuildDate:    buildDate,
+			GitVersion: gitVersion,
+			GitCommit:  gitCommit,
+			BuildDate:  buildDate,
 		})
 		if err != nil {
 			return
