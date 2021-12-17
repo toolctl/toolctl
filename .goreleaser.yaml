@@ -1,0 +1,19 @@
+builds:
+  - goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s
+      - -w
+      - -X github.com/toolctl/toolctl/internal/cmd.gitVersion={{.Version}}
+      - -X github.com/toolctl/toolctl/internal/cmd.gitCommit={{.Commit}}
+      - -X github.com/toolctl/toolctl/internal/cmd.buildDate={{.Date}}
+
+changelog:
+  skip: true
+
+archives:
+  - id: compressed
+    format: tar.gz
+  - id: uncompressed
+    format: binary
