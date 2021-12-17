@@ -7,8 +7,5 @@ on:
     branches: [main]
 
 jobs:
-  lint:
-    uses: toolctl/toolctl/.github/workflows/reusable_lint.yaml@main
-
-  test:
-    uses: toolctl/toolctl/.github/workflows/reusable_test.yaml@main
+  reusable-ci:
+    uses: toolctl/toolctl/.github/workflows/reusable_ci.yaml@main
