@@ -3,7 +3,6 @@ package cmd_test
 import (
 	"bytes"
 	"os"
-	"regexp"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -181,22 +180,7 @@ $`,
 				t.Errorf("Error = %v, wantErr %v", err, tt.wantErr)
 			}
 
-			if tt.wantOut == "" && tt.wantOutRegex == "" {
-				t.Fatalf("Either wantOut or wantOutRegex must be set")
-			}
-			if tt.wantOut != "" {
-				if diff := cmp.Diff(tt.wantOut, buf.String()); diff != "" {
-					t.Errorf("Output mismatch (-want +got):\n%s", diff)
-				}
-			} else if tt.wantOutRegex != "" {
-				matched, err := regexp.Match(tt.wantOutRegex, buf.Bytes())
-				if err != nil {
-					t.Errorf("Error compiling regex: %v", err)
-				}
-				if !matched {
-					t.Errorf("Error matching regex: %v, output: %s", tt.wantOutRegex, buf.String())
-				}
-			}
+			checkWantOut(t, tt, buf)
 		})
 
 		os.Setenv("PATH", originalPathEnv)

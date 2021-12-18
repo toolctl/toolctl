@@ -103,12 +103,7 @@ toolctl-another-test-tool
 				t.Errorf("%s: Execute() error = %v, wantErr %v", tt.name, err, tt.wantErr)
 			}
 
-			if tt.wantOut == "" {
-				t.Fatalf("wantOut must be set")
-			}
-			if diff := cmp.Diff(tt.wantOut, buf.String()); diff != "" {
-				t.Errorf("Output mismatch (-want +got):\n%s", diff)
-			}
+			checkWantOut(t, tt, buf)
 		})
 
 		os.Setenv("PATH", originalPathEnv)
