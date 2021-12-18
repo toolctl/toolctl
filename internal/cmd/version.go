@@ -15,6 +15,7 @@ var (
 	buildDate  = "0000-00-00T00:00:00Z"
 )
 
+// VersionInfo holds the version information for a build of toolctl.
 type VersionInfo struct {
 	GitVersion string
 	GitCommit  string

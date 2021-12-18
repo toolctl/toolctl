@@ -1,4 +1,3 @@
-// Package ops contains all the operations-related commands.
 package cmd
 
 import (

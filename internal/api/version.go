@@ -23,6 +23,7 @@ func GetLatestVersion(toolctlAPI ToolctlAPI, tool Tool) (version *semver.Version
 	return
 }
 
+// SaveVersion saves version metadata for a tool to the API.
 func SaveVersion(toolctlAPI ToolctlAPI, tool Tool, meta ToolPlatformVersionMeta) (err error) {
 	yamlBuffer := &bytes.Buffer{}
 

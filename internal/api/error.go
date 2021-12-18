@@ -1,5 +1,6 @@
 package api
 
+// NotFoundError is returned when an API resource could not be found.
 type NotFoundError struct {
 }
 

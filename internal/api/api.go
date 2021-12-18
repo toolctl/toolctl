@@ -10,8 +10,10 @@ import (
 type Location uint32
 
 const (
-	Remote Location = iota
-	Local
+	// Local represents the local API location.
+	Local Location = iota
+	// Remote represents the remote API location.
+	Remote
 )
 
 // ToolctlAPI defines the interface that all toolctl APIs need to implement.
