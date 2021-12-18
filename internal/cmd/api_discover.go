@@ -55,7 +55,9 @@ func newRunDiscover(toolctlWriter io.Writer, localAPIFS afero.Fs) func(cmd *cobr
 	}
 }
 
-func discover(toolctlWriter io.Writer, toolctlAPI api.ToolctlAPI, tool api.Tool) (err error) {
+func discover(
+	toolctlWriter io.Writer, toolctlAPI api.ToolctlAPI, tool api.Tool,
+) (err error) {
 	// Check if the tool is supported
 	toolMeta, err := api.GetToolMeta(toolctlAPI, tool)
 	if err != nil {
@@ -79,17 +81,25 @@ func discover(toolctlWriter io.Writer, toolctlAPI api.ToolctlAPI, tool api.Tool)
 			return strings.Replace(in, "amd64", "x86_64", 1)
 		},
 	}
-
 	downloadURLTemplate, err := template.New("URL").Funcs(funcMap).Parse(toolMeta.DownloadURLTemplate)
 	if err != nil {
 		return
 	}
 
-	// Discover new versions
+	tool.Version = version.String()
+	err = discoverLoop(toolctlWriter, toolctlAPI, tool, downloadURLTemplate)
+	return
+}
+
+func discoverLoop(
+	toolctlWriter io.Writer, toolctlAPI api.ToolctlAPI, tool api.Tool,
+	downloadURLTemplate *template.Template,
+) (err error) {
 	var (
-		url                  string
 		componentToIncrement = "patch"
 		missCounter          int
+		url                  string
+		version              = semver.MustParse(tool.Version)
 	)
 
 	for {
@@ -102,18 +112,8 @@ func discover(toolctlWriter io.Writer, toolctlAPI api.ToolctlAPI, tool api.Tool)
 			if !errors.Is(err, api.NotFoundError{}) {
 				return
 			}
-		} else {
-			fmt.Fprintf(toolctlWriter, "%s v%s already added\n",
-				tool.Name, tool.Version,
-			)
-			// Hacky McHackface
-			statusCode = http.StatusFound
-			componentToIncrement = "patch"
-		}
 
-		if statusCode != http.StatusFound {
-			tool.Version = version.String()
-
+			// We don't have the version yet, so we need to check if it's available
 			var b bytes.Buffer
 			err = downloadURLTemplate.Execute(&b, tool)
 			if err != nil {
@@ -130,74 +130,10 @@ func discover(toolctlWriter io.Writer, toolctlAPI api.ToolctlAPI, tool api.Tool)
 			}
 
 			if statusCode == http.StatusOK {
-				// Download the binary and calculate the SHA256
-				var resp *http.Response
-				resp, err = http.Get(url)
+				err = addNewVersion(toolctlWriter, toolctlAPI, tool, url)
 				if err != nil {
 					return
 				}
-				defer resp.Body.Close()
-
-				var sha256 string
-				sha256, err = CalculateSHA256(resp.Body)
-				if err != nil {
-					return
-				}
-				fmt.Fprintln(toolctlWriter, "SHA256:", sha256)
-
-				// Save the tool platform version metadata
-				toolPlatformVersionMeta := api.ToolPlatformVersionMeta{
-					URL:    url,
-					SHA256: sha256,
-				}
-				err = api.SaveVersion(toolctlAPI, tool, toolPlatformVersionMeta)
-				if err != nil {
-					return
-				}
-
-				// Update the tool platform metadata
-				var toolPlatformMeta api.ToolPlatformMeta
-				toolPlatformMeta, err = api.GetToolPlatformMeta(toolctlAPI, tool)
-				if err != nil {
-					if !errors.Is(err, api.NotFoundError{}) {
-						return
-					}
-
-					toolPlatformMeta = api.ToolPlatformMeta{
-						Version: api.ToolPlatformMetaVersion{
-							Earliest: "42.0.0",
-							Latest:   "0.0.0",
-						},
-					}
-					err = api.SaveToolPlatformMeta(toolctlAPI, tool, toolPlatformMeta)
-					if err != nil {
-						return
-					}
-				}
-
-				var earliestVersion *semver.Version
-				earliestVersion, err = semver.NewVersion(toolPlatformMeta.Version.Earliest)
-				if err != nil {
-					earliestVersion = semver.MustParse("42.0.0")
-				}
-				if version.LessThan(earliestVersion) {
-					toolPlatformMeta.Version.Earliest = version.String()
-				}
-
-				var latestVersion *semver.Version
-				latestVersion, err = semver.NewVersion(toolPlatformMeta.Version.Latest)
-				if err != nil {
-					latestVersion = semver.MustParse("0.0.0")
-				}
-				if version.GreaterThan(latestVersion) {
-					toolPlatformMeta.Version.Latest = version.String()
-				}
-
-				err = api.SaveToolPlatformMeta(toolctlAPI, tool, toolPlatformMeta)
-				if err != nil {
-					return
-				}
-
 				componentToIncrement = "patch"
 			} else {
 				fmt.Fprintf(toolctlWriter, "HTTP status: %d\n", statusCode)
@@ -210,11 +146,17 @@ func discover(toolctlWriter io.Writer, toolctlAPI api.ToolctlAPI, tool api.Tool)
 					} else if componentToIncrement == "minor" {
 						componentToIncrement = "major"
 					} else if componentToIncrement == "major" {
-						return nil
+						return
 					}
 					missCounter = 0
 				}
 			}
+		} else {
+			fmt.Fprintf(toolctlWriter, "%s v%s already added\n",
+				tool.Name, tool.Version,
+			)
+			componentToIncrement = "patch"
+			missCounter = 0
 		}
 
 		version, err = incrementVersion(version, componentToIncrement)
@@ -222,11 +164,97 @@ func discover(toolctlWriter io.Writer, toolctlAPI api.ToolctlAPI, tool api.Tool)
 			return err
 		}
 
-		// If the URL starts with "http://127.0.0.1:", we don't need to throttle
-		if statusCode != http.StatusFound && !strings.HasPrefix(url, "http://127.0.0.1:") {
-			time.Sleep(1 * time.Second)
+		if strings.HasPrefix(url, "http://127.0.0.1:") {
+			continue
+		}
+
+		time.Sleep(1 * time.Second)
+	}
+}
+
+// addNewVersion adds a new version of a tool to the local API.
+func addNewVersion(
+	toolctlWriter io.Writer, toolctlAPI api.ToolctlAPI, tool api.Tool, url string,
+) (err error) {
+	var resp *http.Response
+	resp, err = http.Get(url)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+
+	var sha256 string
+	sha256, err = CalculateSHA256(resp.Body)
+	if err != nil {
+		return
+	}
+	fmt.Fprintln(toolctlWriter, "SHA256:", sha256)
+
+	// Save the tool platform version metadata
+	toolPlatformVersionMeta := api.ToolPlatformVersionMeta{
+		URL:    url,
+		SHA256: sha256,
+	}
+	err = api.SaveVersion(toolctlAPI, tool, toolPlatformVersionMeta)
+	if err != nil {
+		return
+	}
+
+	// Update the tool platform metadata
+	err = updateToolPlatformMeta(toolctlAPI, tool)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func updateToolPlatformMeta(toolctlAPI api.ToolctlAPI, tool api.Tool) (err error) {
+	var toolPlatformMeta api.ToolPlatformMeta
+	toolPlatformMeta, err = api.GetToolPlatformMeta(toolctlAPI, tool)
+	if err != nil {
+		if !errors.Is(err, api.NotFoundError{}) {
+			return
+		}
+
+		toolPlatformMeta = api.ToolPlatformMeta{
+			Version: api.ToolPlatformMetaVersion{
+				Earliest: "42.0.0",
+				Latest:   "0.0.0",
+			},
+		}
+		err = api.SaveToolPlatformMeta(toolctlAPI, tool, toolPlatformMeta)
+		if err != nil {
+			return
 		}
 	}
+
+	var earliestVersion *semver.Version
+	earliestVersion, err = semver.NewVersion(toolPlatformMeta.Version.Earliest)
+	if err != nil {
+		earliestVersion = semver.MustParse("42.0.0")
+	}
+
+	version := semver.MustParse(tool.Version)
+	if version.LessThan(earliestVersion) {
+		toolPlatformMeta.Version.Earliest = version.String()
+	}
+
+	var latestVersion *semver.Version
+	latestVersion, err = semver.NewVersion(toolPlatformMeta.Version.Latest)
+	if err != nil {
+		latestVersion = semver.MustParse("0.0.0")
+	}
+	if version.GreaterThan(latestVersion) {
+		toolPlatformMeta.Version.Latest = version.String()
+	}
+
+	err = api.SaveToolPlatformMeta(toolctlAPI, tool, toolPlatformMeta)
+	if err != nil {
+		return
+	}
+
+	return
 }
 
 func setInitialVersion(toolctlAPI api.ToolctlAPI, noa api.Tool) (version *semver.Version, err error) {
