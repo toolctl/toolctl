@@ -8,11 +8,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Meta contains global metadata for the toolctl API.
 type Meta struct {
 	Tools []string
 }
 
-// GetToolMeta returns the metadata for the given tool
+// GetMeta returns the metadata for the toolctl API.
 func GetMeta(toolctlAPI ToolctlAPI) (meta Meta, err error) {
 	var found bool
 	var metaBytes []byte
@@ -30,6 +31,7 @@ func GetMeta(toolctlAPI ToolctlAPI) (meta Meta, err error) {
 	return
 }
 
+// ToolMeta contains metadata for a tool.
 type ToolMeta struct {
 	Description         string
 	DownloadURLTemplate string `yaml:"downloadURLTemplate"`
@@ -37,7 +39,7 @@ type ToolMeta struct {
 	VersionArgs         []string `yaml:"versionArgs"`
 }
 
-// GetToolMeta returns the metadata for the given tool
+// GetToolMeta returns the metadata for the given tool.
 func GetToolMeta(toolctlAPI ToolctlAPI, tool Tool) (meta ToolMeta, err error) {
 	var found bool
 	var metaBytes []byte
@@ -55,15 +57,18 @@ func GetToolMeta(toolctlAPI ToolctlAPI, tool Tool) (meta ToolMeta, err error) {
 	return
 }
 
+// ToolPlatformMeta contains metadata for a given tool and platform.
 type ToolPlatformMeta struct {
 	Version ToolPlatformMetaVersion
 }
+
+// ToolPlatformMetaVersion contains version metadata for a given tool and platform.
 type ToolPlatformMetaVersion struct {
 	Earliest string
 	Latest   string
 }
 
-// GetToolPlatformMeta returns the metadata for the given tool, OS and architecture
+// GetToolPlatformMeta returns the metadata for the given tool and platform.
 func GetToolPlatformMeta(toolctlAPI ToolctlAPI, tool Tool) (meta ToolPlatformMeta, err error) {
 	var found bool
 	var metaBytes []byte
@@ -79,6 +84,7 @@ func GetToolPlatformMeta(toolctlAPI ToolctlAPI, tool Tool) (meta ToolPlatformMet
 	return
 }
 
+// SaveToolPlatformMeta saves the metadata for the given tool and platform.
 func SaveToolPlatformMeta(toolctlAPI ToolctlAPI, tool Tool, meta ToolPlatformMeta) (err error) {
 	yamlBuffer := &bytes.Buffer{}
 	yamlEncoder := yaml.NewEncoder(yamlBuffer)
@@ -103,11 +109,13 @@ func SaveToolPlatformMeta(toolctlAPI ToolctlAPI, tool Tool, meta ToolPlatformMet
 	return
 }
 
+// ToolPlatformVersionMeta contains metadata for a given tool version and platform.
 type ToolPlatformVersionMeta struct {
 	URL    string
 	SHA256 string
 }
 
+// GetToolPlatformVersionMeta returns the metadata for the given tool version and platform.
 func GetToolPlatformVersionMeta(toolctlAPI ToolctlAPI, tool Tool) (meta ToolPlatformVersionMeta, err error) {
 	var found bool
 	var metaBytes []byte

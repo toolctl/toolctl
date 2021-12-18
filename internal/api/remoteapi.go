@@ -49,6 +49,7 @@ func (a remoteAPI) SaveContents(path string, contents []byte) (err error) {
 	return fmt.Errorf("not implemented")
 }
 
+// NewRemoteAPI returns a new remote API instance.
 func NewRemoteAPI(localFS afero.Fs, remoteAPIBaseURL string) (ToolctlAPI, error) {
 	var baseURL *url.URL
 	baseURL, err := url.Parse(remoteAPIBaseURL)

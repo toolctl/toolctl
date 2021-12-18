@@ -49,6 +49,7 @@ func (a localAPI) SaveContents(relativePath string, contents []byte) (err error)
 	return
 }
 
+// NewLocalAPI returns a new local API instance.
 func NewLocalAPI(localAPIFS afero.Fs, basePath string) (ToolctlAPI, error) {
 	return &localAPI{
 		BasePath:   basePath,
