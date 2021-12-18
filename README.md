@@ -2,7 +2,10 @@
 
 <img src="https://user-images.githubusercontent.com/547220/146074557-339fc1e4-f83e-4cbb-b885-74cb6b52fd46.png" width="200px" alt="A drawing of a cute gopher holding a wrench">
 
-![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/toolctl/toolctl/CI/main) [![Go Report Card](https://goreportcard.com/badge/github.com/toolctl/toolctl)](https://goreportcard.com/report/github.com/toolctl/toolctl) ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/toolctl/toolctl) ![GitHub all releases](https://img.shields.io/github/downloads/toolctl/toolctl/total) ![GitHub](https://img.shields.io/github/license/toolctl/toolctl)
+[![GitHub Workflow Status (main branch)](https://img.shields.io/github/workflow/status/toolctl/toolctl/CI/main)](https://github.com/toolctl/toolctl/actions?query=branch%3Amain)
+[![Go Report Card](https://goreportcard.com/badge/github.com/toolctl/toolctl)](https://goreportcard.com/report/github.com/toolctl/toolctl)
+[![GitHub release (latest)](https://img.shields.io/github/v/release/toolctl/toolctl)](https://github.com/toolctl/toolctl/releases/latest)
+[![GitHub](https://img.shields.io/github/license/toolctl/toolctl)](LICENSE)
 
 `toolctl` helps you manage your tools on Linux and macOS.
 
