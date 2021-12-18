@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/toolctl/toolctl/internal/cmd"
 )
 
@@ -77,12 +76,7 @@ Use "toolctl [command] --help" for more information about a command.
 				t.Errorf("%s: Execute() error = %v, wantErr %v", tt.name, err, tt.wantErr)
 			}
 
-			if tt.wantOut == "" {
-				t.Fatalf("wantOut must be set")
-			}
-			if diff := cmp.Diff(tt.wantOut, buf.String()); diff != "" {
-				t.Errorf("Output mismatch (-want +got):\n%s", diff)
-			}
+			checkWantOut(t, tt, buf)
 		})
 	}
 }

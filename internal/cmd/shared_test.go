@@ -1,6 +1,7 @@
 package cmd_test
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"testing"
@@ -18,6 +20,70 @@ import (
 	"github.com/toolctl/toolctl/internal/api"
 	"github.com/toolctl/toolctl/internal/cmd"
 )
+
+func TestArgsToTools(t *testing.T) {
+	type args struct {
+		args           []string
+		versionAllowed bool
+	}
+
+	tests := []struct {
+		name       string
+		args       args
+		want       []api.Tool
+		wantErrStr string
+	}{
+		{
+			name: "should work",
+			args: args{
+				args:           []string{"test-tool", "other-test-tool@0.1.2"},
+				versionAllowed: true,
+			},
+			want: []api.Tool{
+				{
+					Name:    "test-tool",
+					OS:      runtime.GOOS,
+					Arch:    runtime.GOARCH,
+					Version: "",
+				},
+				{
+					Name:    "other-test-tool",
+					OS:      runtime.GOOS,
+					Arch:    runtime.GOARCH,
+					Version: "0.1.2",
+				},
+			},
+		},
+		{
+			name: "version not allowed",
+			args: args{
+				args:           []string{"test-tool", "test-tool@0.1.2"},
+				versionAllowed: false,
+			},
+			want:       []api.Tool{},
+			wantErrStr: "please don't specify a tool version",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotTools, err := cmd.ArgsToTools(tt.args.args, tt.args.versionAllowed)
+			if (err == nil) != (tt.wantErrStr == "") {
+				t.Errorf("ArgsToTools() error = %v, wantErr %v", err, tt.wantErrStr)
+			}
+			if err != nil && err.Error() != tt.wantErrStr {
+				t.Errorf("ArgsToTools() error = %v, wantErr %v", err, tt.wantErrStr)
+			}
+			if !cmp.Equal(gotTools, tt.want) {
+				t.Errorf("ArgsToTools() = %v, want %v", gotTools, tt.want)
+			}
+		})
+	}
+}
+
+// -----------------------------------------------------------------------------
+// Shared test helpers
+// -----------------------------------------------------------------------------
 
 const localAPIBasePath = "/toolctl/tools/v0"
 
@@ -410,16 +476,26 @@ func createTarGzTool(downloadFS afero.Fs, inSubdir bool) (sha256 string, err err
 	if err != nil {
 		return
 	}
-	gz := archiver.NewGz()
-	err = gz.Compress(tarFileIn, tarGzFileOut)
+	err = archiver.NewGz().Compress(tarFileIn, tarGzFileOut)
 	if err != nil {
 		return
 	}
 
-	tarGzFile, err = downloadFS.Open(tarGzFilePath)
+	sha256, err = calculateSHA256(downloadFS, tarGzFilePath)
 	if err != nil {
 		return
 	}
+
+	return
+}
+
+func calculateSHA256(downloadFS afero.Fs, tarGzFilePath string) (sha256 string, err error) {
+	tarGzFile, err := downloadFS.Open(tarGzFilePath)
+	if err != nil {
+		return
+	}
+	defer tarGzFile.Close()
+
 	sha256, err = cmd.CalculateSHA256(tarGzFile)
 	if err != nil {
 		return
@@ -428,62 +504,25 @@ func createTarGzTool(downloadFS afero.Fs, inSubdir bool) (sha256 string, err err
 	return
 }
 
-func TestArgsToTools(t *testing.T) {
-	type args struct {
-		args           []string
-		versionAllowed bool
+func checkWantOut(t *testing.T, tt test, buf *bytes.Buffer) {
+	if tt.wantOut == "" && tt.wantOutRegex == "" {
+		t.Fatalf("Either wantOut or wantOutRegex must be set")
+	}
+	if tt.wantOut != "" && tt.wantOutRegex != "" {
+		t.Fatalf("wantOut and wantOutRegex cannot be set at the same time")
 	}
 
-	tests := []struct {
-		name       string
-		args       args
-		want       []api.Tool
-		wantErrStr string
-	}{
-		{
-			name: "should work",
-			args: args{
-				args:           []string{"test-tool", "other-test-tool@0.1.2"},
-				versionAllowed: true,
-			},
-			want: []api.Tool{
-				{
-					Name:    "test-tool",
-					OS:      runtime.GOOS,
-					Arch:    runtime.GOARCH,
-					Version: "",
-				},
-				{
-					Name:    "other-test-tool",
-					OS:      runtime.GOOS,
-					Arch:    runtime.GOARCH,
-					Version: "0.1.2",
-				},
-			},
-		},
-		{
-			name: "version not allowed",
-			args: args{
-				args:           []string{"test-tool", "test-tool@0.1.2"},
-				versionAllowed: false,
-			},
-			want:       []api.Tool{},
-			wantErrStr: "please don't specify a tool version",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotTools, err := cmd.ArgsToTools(tt.args.args, tt.args.versionAllowed)
-			if (err == nil) != (tt.wantErrStr == "") {
-				t.Errorf("ArgsToTools() error = %v, wantErr %v", err, tt.wantErrStr)
-			}
-			if err != nil && err.Error() != tt.wantErrStr {
-				t.Errorf("ArgsToTools() error = %v, wantErr %v", err, tt.wantErrStr)
-			}
-			if !cmp.Equal(gotTools, tt.want) {
-				t.Errorf("ArgsToTools() = %v, want %v", gotTools, tt.want)
-			}
-		})
+	if tt.wantOut != "" {
+		if diff := cmp.Diff(tt.wantOut, buf.String()); diff != "" {
+			t.Errorf("Output mismatch (-want +got):\n%s", diff)
+		}
+	} else if tt.wantOutRegex != "" {
+		matched, err := regexp.Match(tt.wantOutRegex, buf.Bytes())
+		if err != nil {
+			t.Errorf("Error compiling regex: %v", err)
+		}
+		if !matched {
+			t.Errorf("Error matching regex: %v, output: %s", tt.wantOutRegex, buf.String())
+		}
 	}
 }

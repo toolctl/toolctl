@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"io/ioutil"
 	"os"
-	"regexp"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -194,16 +193,9 @@ Error: installation failed: Expected v0.1.0, but installed v0.2.0
 			t.Fatal(err)
 		}
 
-		tempInstallDir, err := ioutil.TempDir("", "toolctl-test-install-*")
+		tempInstallDir, err := newTempInstallDir(tt)
 		if err != nil {
 			t.Fatal(err)
-		}
-
-		if tt.installDirNotWritable {
-			err = os.Chmod(tempInstallDir, 0500)
-			if err != nil {
-				t.Fatal(err)
-			}
 		}
 
 		var preinstalledTempInstallDir string
@@ -243,22 +235,7 @@ Error: installation failed: Expected v0.1.0, but installed v0.2.0
 				t.Errorf("Error = %v, wantErr %v", err, tt.wantErr)
 			}
 
-			if tt.wantOut == "" && tt.wantOutRegex == "" {
-				t.Fatalf("Either wantOut or wantOutRegex must be set")
-			}
-			if tt.wantOut != "" {
-				if diff := cmp.Diff(tt.wantOut, buf.String()); diff != "" {
-					t.Errorf("Output mismatch (-want +got):\n%s", diff)
-				}
-			} else if tt.wantOutRegex != "" {
-				matched, err := regexp.Match(tt.wantOutRegex, buf.Bytes())
-				if err != nil {
-					t.Errorf("Error compiling regex: %v", err)
-				}
-				if !matched {
-					t.Errorf("Error matching regex: %v, output: %s", tt.wantOutRegex, buf.String())
-				}
-			}
+			checkWantOut(t, tt, buf)
 		})
 
 		os.Setenv("PATH", originalPathEnv)
@@ -278,4 +255,18 @@ Error: installation failed: Expected v0.1.0, but installed v0.2.0
 		apiServer.Close()
 		downloadServer.Close()
 	}
+}
+
+func newTempInstallDir(tt test) (tempInstallDir string, err error) {
+	tempInstallDir, err = ioutil.TempDir("", "toolctl-test-install-*")
+	if err != nil {
+		return
+	}
+	if tt.installDirNotWritable {
+		err = os.Chmod(tempInstallDir, 0500)
+		if err != nil {
+			return
+		}
+	}
+	return
 }
