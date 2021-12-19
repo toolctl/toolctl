@@ -48,60 +48,19 @@ func newRunInstall(
 	toolctlWriter io.Writer, localAPIFS afero.Fs,
 ) func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
+		toolctlAPI, err := api.New(localAPIFS, cmd, api.Remote)
+		if err != nil {
+			return err
+		}
+
 		allTools, err := ArgsToTools(args, runtime.GOOS, runtime.GOARCH, true)
 		if err != nil {
 			return err
 		}
 
-		// Check if the install directory exists
-		installDir, err := utils.RequireConfigString("InstallDir")
+		installDir, err := checkInstallDir(toolctlWriter, allTools)
 		if err != nil {
 			return
-		}
-		_, err = os.Stat(installDir)
-		if err != nil {
-			err = fmt.Errorf(
-				"install directory %s does not exist",
-				wrapInQuotesIfContainsSpace(installDir),
-			)
-			return
-		}
-
-		// Check if we have write access to the install directory
-		if unix.Access(installDir, unix.W_OK) != nil {
-			var currentUser *user.User
-			currentUser, err = user.Current()
-			if err != nil {
-				return
-			}
-			err = fmt.Errorf("%s is not writable by user %s, try running:\n  sudo toolctl install %s",
-				wrapInQuotesIfContainsSpace(installDir),
-				currentUser.Username, toolsToArgs(allTools),
-			)
-			return
-		}
-
-		// Check if the install directory is in the PATH
-		var installDirInPath bool
-		pathEnv := os.Getenv("PATH")
-		paths := strings.Split(pathEnv, ":")
-		for _, path := range paths {
-			if path == installDir {
-				installDirInPath = true
-				break
-			}
-		}
-		if !installDirInPath {
-			fmt.Fprintf(
-				toolctlWriter,
-				"🚨 %s is not in $PATH\n",
-				wrapInQuotesIfContainsSpace(installDir),
-			)
-		}
-
-		toolctlAPI, err := api.New(localAPIFS, cmd, api.Remote)
-		if err != nil {
-			return err
 		}
 
 		for _, tool := range allTools {
@@ -115,11 +74,59 @@ func newRunInstall(
 	}
 }
 
+func checkInstallDir(
+	toolctlWriter io.Writer, allTools []api.Tool,
+) (installDir string, err error) {
+	installDir, err = utils.RequireConfigString("InstallDir")
+	if err != nil {
+		return
+	}
+	_, err = os.Stat(installDir)
+	if err != nil {
+		err = fmt.Errorf(
+			"install directory %s does not exist",
+			wrapInQuotesIfContainsSpace(installDir),
+		)
+		return
+	}
+
+	if unix.Access(installDir, unix.W_OK) != nil {
+		var currentUser *user.User
+		currentUser, err = user.Current()
+		if err != nil {
+			return
+		}
+		err = fmt.Errorf("%s is not writable by user %s, try running:\n  sudo toolctl install %s",
+			wrapInQuotesIfContainsSpace(installDir),
+			currentUser.Username, toolsToArgs(allTools),
+		)
+		return
+	}
+
+	var installDirInPath bool
+	pathEnv := os.Getenv("PATH")
+	paths := strings.Split(pathEnv, ":")
+	for _, path := range paths {
+		if path == installDir {
+			installDirInPath = true
+			break
+		}
+	}
+	if !installDirInPath {
+		fmt.Fprintf(
+			toolctlWriter,
+			"🚨 %s is not in $PATH\n",
+			wrapInQuotesIfContainsSpace(installDir),
+		)
+	}
+
+	return
+}
+
 func install(
 	toolctlWriter io.Writer, toolctlAPI api.ToolctlAPI, installDir string,
 	tool api.Tool, allTools []api.Tool,
 ) (err error) {
-
 	// Check if the tool is supported
 	toolMeta, err := api.GetToolMeta(toolctlAPI, tool)
 	if err != nil {

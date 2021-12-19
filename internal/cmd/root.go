@@ -51,6 +51,7 @@ func NewRootCmd(toolctlWriter io.Writer, localAPIFS afero.Fs) *cobra.Command {
 	rootCmd.AddCommand(newInfoCmd(toolctlWriter, localAPIFS))
 	rootCmd.AddCommand(newInstallCmd(toolctlWriter, localAPIFS))
 	rootCmd.AddCommand(newListCmd(toolctlWriter, localAPIFS))
+	rootCmd.AddCommand(newUpgradeCmd(toolctlWriter, localAPIFS))
 	rootCmd.AddCommand(newVersionCmd(toolctlWriter))
 
 	// Hidden commands

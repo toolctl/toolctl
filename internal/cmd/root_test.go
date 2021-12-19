@@ -25,6 +25,7 @@ Available Commands:
   info        Information about one or more tools
   install     Install one or more tools
   list        List the tools
+  upgrade     Upgrade one or more tools
   version     Display the version of toolctl
 
 Flags:

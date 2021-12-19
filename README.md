@@ -33,6 +33,16 @@ In the not-too-distant future, we will also provide an easy-to-use setup script 
 🎉 Successfully installed
 ```
 
+### Upgrade a tool
+
+```text
+❯ toolctl upgrade yq
+👷 Upgrading from v4.13.4 to v4.13.5 ...
+👷 Removing v4.13.4 ...
+👷 Installing v4.13.5 ...
+🎉 Successfully installed
+```
+
 ### Get information about tools
 
 ```text
@@ -61,12 +71,6 @@ In the not-too-distant future, we will also provide an easy-to-use setup script 
 [kustomize] ✨ kustomize v4.4.1: Template-free customization of Kubernetes configuration
 [kustomize] 🔄 kustomize v3.9.4 is installed at /usr/local/bin/kustomize
 ```
-
-## What will I soon be able to do with `toolctl`?
-
-- Upgrade your tools
-
-You have more ideas? Please [create an issue](https://github.com/toolctl/toolctl/issues/new) and let us know!
 
 ## Which tools does `toolctl` support?
 

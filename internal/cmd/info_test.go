@@ -123,7 +123,6 @@ echo "v0.1.1"
 			},
 			preinstalledToolIsSymlinked: true,
 			cliArgs:                     []string{"toolctl-test-tool"},
-			wantErr:                     false,
 			wantOutRegex: `✨ toolctl-test-tool v0.1.1: toolctl test tool
 ✅ toolctl-test-tool v0.1.1 is installed at .+
 🔗 Symlinked from .+/symlinked-toolctl-test-tool
@@ -155,7 +154,7 @@ $`,
 
 		var preinstalledTempInstallDir string
 		if !cmp.Equal(tt.preinstalledTools, preinstalledTool{}) {
-			preinstalledTempInstallDir, err = install(
+			preinstalledTempInstallDir, err = preinstall(
 				t, toolctlAPI, tt.preinstalledTools, tt.preinstalledToolIsSymlinked,
 				originalPathEnv,
 			)
