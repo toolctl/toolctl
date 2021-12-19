@@ -67,7 +67,7 @@ func TestArgsToTools(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotTools, err := cmd.ArgsToTools(tt.args.args, tt.args.versionAllowed)
+			gotTools, err := cmd.ArgsToTools(tt.args.args, runtime.GOOS, runtime.GOARCH, tt.args.versionAllowed)
 			if (err == nil) != (tt.wantErrStr == "") {
 				t.Errorf("ArgsToTools() error = %v, wantErr %v", err, tt.wantErrStr)
 			}
@@ -218,7 +218,7 @@ type APIFile struct {
 func getDefaultAPIContents(
 	downloadServerURL string, tarGzFileSHA256 string, tarGzInSubdirSHA256 string,
 ) APIContents {
-	return APIContents{
+	apiContents := APIContents{
 		// List of supported tools
 		APIFile{
 			Path: path.Join(localAPIBasePath, "meta.yaml"),
@@ -238,23 +238,6 @@ homepage: https://toolctl.io/
 versionArgs: [version, --short]
 `,
 		},
-		APIFile{
-			Path: path.Join(localAPIBasePath, "toolctl-test-tool", runtime.GOOS+"-"+runtime.GOARCH, "meta.yaml"),
-			Contents: `version:
-  earliest: 0.1.0
-  latest: 0.1.1
-`,
-		},
-		APIFile{
-			Path: path.Join(localAPIBasePath, "toolctl-test-tool", runtime.GOOS+"-"+runtime.GOARCH, "0.1.0.yaml"),
-			Contents: `url: ` + downloadServerURL + `/` + runtime.GOOS + `/` + runtime.GOARCH + `/0.1.0/toolctl-test-tool
-sha256: 69b2af71462f6deb084b9a38e5ffa2446ab1930232a887c2874d42e81bcc21dd`,
-		},
-		APIFile{
-			Path: path.Join(localAPIBasePath, "toolctl-test-tool", runtime.GOOS+"-"+runtime.GOARCH, "0.1.1.yaml"),
-			Contents: `url: ` + downloadServerURL + `/` + runtime.GOOS + `/` + runtime.GOARCH + `/0.1.1/toolctl-test-tool
-sha256: e05dd45f0c922a9ecc659c9f6234159c9820678c0b70d1ca9e48721a379b2143`,
-		},
 
 		// Supported tool as .tar.gz
 		APIFile{
@@ -265,19 +248,6 @@ homepage: https://toolctl.io/
 versionArgs: [version, --short]
 `,
 		},
-		APIFile{
-			Path: path.Join(localAPIBasePath, "toolctl-test-tool-tar-gz", runtime.GOOS+"-"+runtime.GOARCH, "meta.yaml"),
-			Contents: `version:
-  earliest: 0.1.0
-  latest: 0.1.0
-`,
-		},
-		APIFile{
-			Path: path.Join(localAPIBasePath, "toolctl-test-tool-tar-gz", runtime.GOOS+"-"+runtime.GOARCH, "0.1.0.yaml"),
-			Contents: fmt.Sprintf(`url: %s/%s/%s/0.1.0/toolctl-test-tool-tar-gz.tar.gz
-sha256: %s
-`, downloadServerURL, runtime.GOOS, runtime.GOARCH, tarGzFileSHA256),
-		},
 
 		// Supported tool as .tar.gz in subdir
 		APIFile{
@@ -287,19 +257,6 @@ downloadURLTemplate: ` + downloadServerURL + `/{{.OS}}/{{.Arch}}/{{.Version}}/{{
 homepage: https://toolctl.io/
 versionArgs: [version, --short]
 `,
-		},
-		APIFile{
-			Path: path.Join(localAPIBasePath, "toolctl-test-tool-tar-gz-subdir", runtime.GOOS+"-"+runtime.GOARCH, "meta.yaml"),
-			Contents: `version:
-  earliest: 0.1.0
-  latest: 0.1.0
-`,
-		},
-		APIFile{
-			Path: path.Join(localAPIBasePath, "toolctl-test-tool-tar-gz-subdir", runtime.GOOS+"-"+runtime.GOARCH, "0.1.0.yaml"),
-			Contents: fmt.Sprintf(`url: %s/%s/%s/0.1.0/toolctl-test-tool-tar-gz-subdir.tar.gz
-sha256: %s
-`, downloadServerURL, runtime.GOOS, runtime.GOARCH, tarGzInSubdirSHA256),
 		},
 
 		// Tool that is supported, but not on the current platform
@@ -323,26 +280,83 @@ homepage: https://toolctl.io/
 versionArgs: [version, --short]
 `, downloadServerURL),
 		},
-		APIFile{
-			Path: path.Join(
-				localAPIBasePath, "toolctl-test-tool-version-mismatch",
-				runtime.GOOS+"-"+runtime.GOARCH, "meta.yaml",
-			),
-			Contents: `version:
+	}
+
+	for _, os := range []string{"darwin", "linux"} {
+		apiContents = append(apiContents,
+			// Supported tool
+			APIFile{
+				Path: path.Join(localAPIBasePath, "toolctl-test-tool", os+"-amd64", "meta.yaml"),
+				Contents: `version:
+  earliest: 0.1.0
+  latest: 0.1.1
+`,
+			},
+			APIFile{
+				Path: path.Join(localAPIBasePath, "toolctl-test-tool", os+"-amd64", "0.1.0.yaml"),
+				Contents: `url: ` + downloadServerURL + `/` + os + `/amd64/0.1.0/toolctl-test-tool
+sha256: 69b2af71462f6deb084b9a38e5ffa2446ab1930232a887c2874d42e81bcc21dd`,
+			},
+			APIFile{
+				Path: path.Join(localAPIBasePath, "toolctl-test-tool", os+"-amd64", "0.1.1.yaml"),
+				Contents: `url: ` + downloadServerURL + `/` + os + `/amd64/0.1.1/toolctl-test-tool
+sha256: e05dd45f0c922a9ecc659c9f6234159c9820678c0b70d1ca9e48721a379b2143`,
+			},
+
+			// Supported tool as .tar.gz
+			APIFile{
+				Path: path.Join(localAPIBasePath, "toolctl-test-tool-tar-gz", os+"-amd64", "meta.yaml"),
+				Contents: `version:
   earliest: 0.1.0
   latest: 0.1.0
 `,
-		},
-		APIFile{
-			Path: path.Join(
-				localAPIBasePath, "toolctl-test-tool-version-mismatch",
-				runtime.GOOS+"-"+runtime.GOARCH, "0.1.0.yaml",
-			),
-			Contents: fmt.Sprintf(`url: %s/%s/%s/0.1.0/toolctl-test-tool-version-mismatch
+			},
+			APIFile{
+				Path: path.Join(localAPIBasePath, "toolctl-test-tool-tar-gz", os+"-amd64", "0.1.0.yaml"),
+				Contents: fmt.Sprintf(`url: %s/%s/%s/0.1.0/toolctl-test-tool-tar-gz.tar.gz
+sha256: %s
+`, downloadServerURL, "darwin", "amd64", tarGzFileSHA256),
+			},
+
+			// Supported tool as .tar.gz in subdir
+			APIFile{
+				Path: path.Join(localAPIBasePath, "toolctl-test-tool-tar-gz-subdir", os+"-amd64", "meta.yaml"),
+				Contents: `version:
+  earliest: 0.1.0
+  latest: 0.1.0
+`,
+			},
+			APIFile{
+				Path: path.Join(localAPIBasePath, "toolctl-test-tool-tar-gz-subdir", os+"-amd64", "0.1.0.yaml"),
+				Contents: fmt.Sprintf(`url: %s/%s/%s/0.1.0/toolctl-test-tool-tar-gz-subdir.tar.gz
+sha256: %s
+`, downloadServerURL, "darwin", "amd64", tarGzInSubdirSHA256),
+			},
+
+			// Tool with version mismatch
+			APIFile{
+				Path: path.Join(
+					localAPIBasePath, "toolctl-test-tool-version-mismatch",
+					os+"-amd64", "meta.yaml",
+				),
+				Contents: `version:
+  earliest: 0.1.0
+  latest: 0.1.0
+`,
+			},
+			APIFile{
+				Path: path.Join(
+					localAPIBasePath, "toolctl-test-tool-version-mismatch",
+					os+"-amd64", "0.1.0.yaml",
+				),
+				Contents: fmt.Sprintf(`url: %s/%s/%s/0.1.0/toolctl-test-tool-version-mismatch
 sha256: ce04245b5e5ef4aa9b4205b61bedb5e2376a83336b3d72318addbc2c45b553c6
-`, downloadServerURL, runtime.GOOS, runtime.GOARCH),
-		},
+`, downloadServerURL, os, "amd64"),
+			},
+		)
 	}
+
+	return apiContents
 }
 
 func setupDownloadServer() (
@@ -351,62 +365,64 @@ func setupDownloadServer() (
 ) {
 	downloadFS := afero.NewMemMapFs()
 
-	err = afero.WriteFile(
-		downloadFS,
-		"/"+runtime.GOOS+"/"+runtime.GOARCH+"/0.1.0/toolctl-test-tool",
-		[]byte(`#!/bin/sh
+	for _, os := range []string{"darwin", "linux"} {
+		err = afero.WriteFile(
+			downloadFS,
+			"/"+os+"/amd64/0.1.0/toolctl-test-tool",
+			[]byte(`#!/bin/sh
 echo "v0.1.0"
 `),
-		0644,
-	)
-	if err != nil {
-		return
-	}
+			0644,
+		)
+		if err != nil {
+			return
+		}
 
-	tarGzSHA256, err = createTarGzTool(downloadFS, false)
-	if err != nil {
-		return
-	}
+		tarGzSHA256, err = createTarGzTool(downloadFS, false)
+		if err != nil {
+			return
+		}
 
-	tarGzInSubDirSHA256, err = createTarGzTool(downloadFS, true)
-	if err != nil {
-		return
-	}
+		tarGzInSubDirSHA256, err = createTarGzTool(downloadFS, true)
+		if err != nil {
+			return
+		}
 
-	err = afero.WriteFile(
-		downloadFS,
-		"/"+runtime.GOOS+"/"+runtime.GOARCH+"/0.1.1/toolctl-test-tool",
-		[]byte(`#!/bin/sh
+		err = afero.WriteFile(
+			downloadFS,
+			"/"+os+"/amd64/0.1.1/toolctl-test-tool",
+			[]byte(`#!/bin/sh
 echo "v0.1.1"
 `),
-		0644,
-	)
-	if err != nil {
-		return
-	}
+			0644,
+		)
+		if err != nil {
+			return
+		}
 
-	err = afero.WriteFile(
-		downloadFS,
-		"/"+runtime.GOOS+"/"+runtime.GOARCH+"/0.2.0/toolctl-test-tool",
-		[]byte(`#!/bin/sh
+		err = afero.WriteFile(
+			downloadFS,
+			"/"+os+"/amd64/0.2.0/toolctl-test-tool",
+			[]byte(`#!/bin/sh
 echo "v0.2.0"
 `),
-		0644,
-	)
-	if err != nil {
-		return
-	}
+			0644,
+		)
+		if err != nil {
+			return
+		}
 
-	err = afero.WriteFile(
-		downloadFS,
-		"/"+runtime.GOOS+"/"+runtime.GOARCH+"/0.1.0/toolctl-test-tool-version-mismatch",
-		[]byte(`#!/bin/sh
+		err = afero.WriteFile(
+			downloadFS,
+			"/"+os+"/amd64/0.1.0/toolctl-test-tool-version-mismatch",
+			[]byte(`#!/bin/sh
 echo "v0.2.0"
 	`),
-		0644,
-	)
-	if err != nil {
-		return
+			0644,
+		)
+		if err != nil {
+			return
+		}
 	}
 
 	downloadFileServer := http.FileServer(afero.NewHttpFs(downloadFS).Dir("/"))
@@ -421,7 +437,7 @@ func createTarGzTool(downloadFS afero.Fs, inSubdir bool) (sha256 string, err err
 		filename += "-subdir"
 	}
 
-	tarFilePath := "/" + runtime.GOOS + "/" + runtime.GOARCH + "/0.1.0/" + filename + ".tar"
+	tarFilePath := "/darwin/amd64/0.1.0/" + filename + ".tar"
 	tarGzFilePath := tarFilePath + ".gz"
 	subdirWithTrailingSlash := ""
 	if inSubdir {
@@ -441,7 +457,7 @@ func createTarGzTool(downloadFS afero.Fs, inSubdir bool) (sha256 string, err err
 	if err != nil {
 		return
 	}
-	inFile, err := downloadFS.Open("/" + runtime.GOOS + "/" + runtime.GOARCH + "/0.1.0/toolctl-test-tool")
+	inFile, err := downloadFS.Open("/darwin/amd64/0.1.0/toolctl-test-tool")
 	if err != nil {
 		return
 	}

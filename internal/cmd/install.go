@@ -11,6 +11,7 @@ import (
 	"os/user"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/Masterminds/semver"
@@ -46,7 +47,7 @@ func newRunInstall(
 	toolctlWriter io.Writer, localAPIFS afero.Fs,
 ) func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
-		allTools, err := ArgsToTools(args, true)
+		allTools, err := ArgsToTools(args, runtime.GOOS, runtime.GOARCH, true)
 		if err != nil {
 			return err
 		}

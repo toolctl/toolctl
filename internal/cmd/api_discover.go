@@ -28,6 +28,10 @@ func newDiscoverCmd(toolctlWriter io.Writer, localAPIFS afero.Fs) *cobra.Command
 		Args: checkArgs(),
 		RunE: newRunDiscover(toolctlWriter, localAPIFS),
 	}
+
+	discoverCmd.Flags().StringSlice("arch", []string{"amd64", "arm64"}, "comma-separated list of architectures")
+	discoverCmd.Flags().StringSlice("os", []string{"darwin", "linux"}, "comma-separated list of operating systems")
+
 	return discoverCmd
 }
 
@@ -39,9 +43,24 @@ func newRunDiscover(toolctlWriter io.Writer, localAPIFS afero.Fs) func(cmd *cobr
 			return err
 		}
 
-		allTools, err := ArgsToTools(args, true)
+		osArg, err := cmd.Flags().GetStringSlice("os")
 		if err != nil {
 			return err
+		}
+		archArg, err := cmd.Flags().GetStringSlice("arch")
+		if err != nil {
+			return err
+		}
+
+		var allTools []api.Tool
+		for _, os := range osArg {
+			for _, arch := range archArg {
+				tools, err := ArgsToTools(args, os, arch, true)
+				if err != nil {
+					return err
+				}
+				allTools = append(allTools, tools...)
+			}
 		}
 
 		for _, tool := range allTools {
@@ -104,6 +123,7 @@ func discoverLoop(
 
 	for {
 		var statusCode int
+		var skipSleep bool
 
 		// Check if we already have the version
 		tool.Version = version.String()
@@ -121,7 +141,9 @@ func discoverLoop(
 			}
 			url = b.String()
 
-			fmt.Fprintf(toolctlWriter, "%s v%s ...\n", tool.Name, tool.Version)
+			fmt.Fprintf(toolctlWriter, "%s %s/%s v%s ...\n",
+				tool.Name, tool.OS, tool.Arch, tool.Version,
+			)
 			fmt.Fprintf(toolctlWriter, "URL: %s\n", url)
 
 			statusCode, err = getStatusCode(url)
@@ -152,11 +174,12 @@ func discoverLoop(
 				}
 			}
 		} else {
-			fmt.Fprintf(toolctlWriter, "%s v%s already added\n",
-				tool.Name, tool.Version,
+			fmt.Fprintf(toolctlWriter, "%s %s/%s v%s already added\n",
+				tool.Name, tool.OS, tool.Arch, tool.Version,
 			)
 			componentToIncrement = "patch"
 			missCounter = 0
+			skipSleep = true
 		}
 
 		version, err = incrementVersion(version, componentToIncrement)
@@ -164,7 +187,7 @@ func discoverLoop(
 			return err
 		}
 
-		if strings.HasPrefix(url, "http://127.0.0.1:") {
+		if skipSleep || strings.HasPrefix(url, "http://127.0.0.1:") {
 			continue
 		}
 

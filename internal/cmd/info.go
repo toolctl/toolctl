@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/Masterminds/semver"
@@ -40,7 +41,7 @@ func newRunInfo(
 			return err
 		}
 
-		allTools, err := ArgsToTools(args, false)
+		allTools, err := ArgsToTools(args, runtime.GOOS, runtime.GOARCH, false)
 		if err != nil {
 			return fmt.Errorf(
 				"%w, try this instead:\n  toolctl info %s",

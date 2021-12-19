@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/spf13/viper"
@@ -29,7 +30,9 @@ Examples:
   toolctl discover kubectl@1.20.0
 
 Flags:
-  -h, --help   help for discover
+      --arch strings   comma-separated list of architectures (default [amd64,arm64])
+  -h, --help           help for discover
+      --os strings     comma-separated list of operating systems (default [darwin,linux])
 
 Global Flags:
       --config string   path of the config file (default is $HOME/.config/toolctl/config.yaml)
@@ -39,34 +42,97 @@ Global Flags:
 		{
 			name:    "supported tool",
 			cliArgs: []string{"toolctl-test-tool"},
-			wantOutRegex: `^toolctl-test-tool v0.1.2 ...
-URL: http://127.0.0.1:.+/0.1.2/toolctl-test-tool
+			wantOut: `toolctl-test-tool darwin/amd64 v0.1.2 ...
+URL: {{downloadServerURL}}/darwin/amd64/0.1.2/toolctl-test-tool
 HTTP status: 404
-toolctl-test-tool v0.1.3 ...
-URL: http://127.0.0.1:.+/0.1.3/toolctl-test-tool
+toolctl-test-tool darwin/amd64 v0.1.3 ...
+URL: {{downloadServerURL}}/darwin/amd64/0.1.3/toolctl-test-tool
 HTTP status: 404
-toolctl-test-tool v0.2.0 ...
-URL: http://127.0.0.1:.+/0.2.0/toolctl-test-tool
+toolctl-test-tool darwin/amd64 v0.2.0 ...
+URL: {{downloadServerURL}}/darwin/amd64/0.2.0/toolctl-test-tool
 SHA256: 92100d959b50115ff3760255480a1ecb6f8558d26f7757cd46b45223f13ac6f1
-toolctl-test-tool v0.2.1 ...
-URL: http://127.0.0.1:.+/0.2.1/toolctl-test-tool
+toolctl-test-tool darwin/amd64 v0.2.1 ...
+URL: {{downloadServerURL}}/darwin/amd64/0.2.1/toolctl-test-tool
 HTTP status: 404
-toolctl-test-tool v0.2.2 ...
-URL: http://127.0.0.1:.+/0.2.2/toolctl-test-tool
+toolctl-test-tool darwin/amd64 v0.2.2 ...
+URL: {{downloadServerURL}}/darwin/amd64/0.2.2/toolctl-test-tool
 HTTP status: 404
-toolctl-test-tool v0.3.0 ...
-URL: http://127.0.0.1:.+/0.3.0/toolctl-test-tool
+toolctl-test-tool darwin/amd64 v0.3.0 ...
+URL: {{downloadServerURL}}/darwin/amd64/0.3.0/toolctl-test-tool
 HTTP status: 404
-toolctl-test-tool v0.4.0 ...
-URL: http://127.0.0.1:.+/0.4.0/toolctl-test-tool
+toolctl-test-tool darwin/amd64 v0.4.0 ...
+URL: {{downloadServerURL}}/darwin/amd64/0.4.0/toolctl-test-tool
 HTTP status: 404
-toolctl-test-tool v1.0.0 ...
-URL: http://127.0.0.1:.+/1.0.0/toolctl-test-tool
+toolctl-test-tool darwin/amd64 v1.0.0 ...
+URL: {{downloadServerURL}}/darwin/amd64/1.0.0/toolctl-test-tool
 HTTP status: 404
-toolctl-test-tool v2.0.0 ...
-URL: http://127.0.0.1:.+/2.0.0/toolctl-test-tool
+toolctl-test-tool darwin/amd64 v2.0.0 ...
+URL: {{downloadServerURL}}/darwin/amd64/2.0.0/toolctl-test-tool
 HTTP status: 404
-$`,
+toolctl-test-tool darwin/arm64 v0.0.1 ...
+URL: {{downloadServerURL}}/darwin/arm64/0.0.1/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool darwin/arm64 v0.0.2 ...
+URL: {{downloadServerURL}}/darwin/arm64/0.0.2/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool darwin/arm64 v0.1.0 ...
+URL: {{downloadServerURL}}/darwin/arm64/0.1.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool darwin/arm64 v0.2.0 ...
+URL: {{downloadServerURL}}/darwin/arm64/0.2.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool darwin/arm64 v1.0.0 ...
+URL: {{downloadServerURL}}/darwin/arm64/1.0.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool darwin/arm64 v2.0.0 ...
+URL: {{downloadServerURL}}/darwin/arm64/2.0.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/amd64 v0.1.2 ...
+URL: {{downloadServerURL}}/linux/amd64/0.1.2/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/amd64 v0.1.3 ...
+URL: {{downloadServerURL}}/linux/amd64/0.1.3/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/amd64 v0.2.0 ...
+URL: {{downloadServerURL}}/linux/amd64/0.2.0/toolctl-test-tool
+SHA256: 92100d959b50115ff3760255480a1ecb6f8558d26f7757cd46b45223f13ac6f1
+toolctl-test-tool linux/amd64 v0.2.1 ...
+URL: {{downloadServerURL}}/linux/amd64/0.2.1/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/amd64 v0.2.2 ...
+URL: {{downloadServerURL}}/linux/amd64/0.2.2/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/amd64 v0.3.0 ...
+URL: {{downloadServerURL}}/linux/amd64/0.3.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/amd64 v0.4.0 ...
+URL: {{downloadServerURL}}/linux/amd64/0.4.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/amd64 v1.0.0 ...
+URL: {{downloadServerURL}}/linux/amd64/1.0.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/amd64 v2.0.0 ...
+URL: {{downloadServerURL}}/linux/amd64/2.0.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/arm64 v0.0.1 ...
+URL: {{downloadServerURL}}/linux/arm64/0.0.1/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/arm64 v0.0.2 ...
+URL: {{downloadServerURL}}/linux/arm64/0.0.2/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/arm64 v0.1.0 ...
+URL: {{downloadServerURL}}/linux/arm64/0.1.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/arm64 v0.2.0 ...
+URL: {{downloadServerURL}}/linux/arm64/0.2.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/arm64 v1.0.0 ...
+URL: {{downloadServerURL}}/linux/arm64/1.0.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/arm64 v2.0.0 ...
+URL: {{downloadServerURL}}/linux/arm64/2.0.0/toolctl-test-tool
+HTTP status: 404
+`,
 			wantFiles: APIContents{
 				APIFile{
 					Path: fmt.Sprintf(
@@ -78,36 +144,101 @@ $`,
 		{
 			name:    "supported tool with version",
 			cliArgs: []string{"toolctl-test-tool@0.1.0"},
-			wantOutRegex: `^toolctl-test-tool v0.1.0 already added
-toolctl-test-tool v0.1.1 already added
-toolctl-test-tool v0.1.2 ...
-URL: http://127.0.0.1:.+/0.1.2/toolctl-test-tool
+			wantOut: `toolctl-test-tool darwin/amd64 v0.1.0 already added
+toolctl-test-tool darwin/amd64 v0.1.1 already added
+toolctl-test-tool darwin/amd64 v0.1.2 ...
+URL: {{downloadServerURL}}/darwin/amd64/0.1.2/toolctl-test-tool
 HTTP status: 404
-toolctl-test-tool v0.1.3 ...
-URL: http://127.0.0.1:.+/0.1.3/toolctl-test-tool
+toolctl-test-tool darwin/amd64 v0.1.3 ...
+URL: {{downloadServerURL}}/darwin/amd64/0.1.3/toolctl-test-tool
 HTTP status: 404
-toolctl-test-tool v0.2.0 ...
-URL: http://127.0.0.1:.+/0.2.0/toolctl-test-tool
+toolctl-test-tool darwin/amd64 v0.2.0 ...
+URL: {{downloadServerURL}}/darwin/amd64/0.2.0/toolctl-test-tool
 SHA256: 92100d959b50115ff3760255480a1ecb6f8558d26f7757cd46b45223f13ac6f1
-toolctl-test-tool v0.2.1 ...
-URL: http://127.0.0.1:.+/0.2.1/toolctl-test-tool
+toolctl-test-tool darwin/amd64 v0.2.1 ...
+URL: {{downloadServerURL}}/darwin/amd64/0.2.1/toolctl-test-tool
 HTTP status: 404
-toolctl-test-tool v0.2.2 ...
-URL: http://127.0.0.1:.+/0.2.2/toolctl-test-tool
+toolctl-test-tool darwin/amd64 v0.2.2 ...
+URL: {{downloadServerURL}}/darwin/amd64/0.2.2/toolctl-test-tool
 HTTP status: 404
-toolctl-test-tool v0.3.0 ...
-URL: http://127.0.0.1:.+/0.3.0/toolctl-test-tool
+toolctl-test-tool darwin/amd64 v0.3.0 ...
+URL: {{downloadServerURL}}/darwin/amd64/0.3.0/toolctl-test-tool
 HTTP status: 404
-toolctl-test-tool v0.4.0 ...
-URL: http://127.0.0.1:.+/0.4.0/toolctl-test-tool
+toolctl-test-tool darwin/amd64 v0.4.0 ...
+URL: {{downloadServerURL}}/darwin/amd64/0.4.0/toolctl-test-tool
 HTTP status: 404
-toolctl-test-tool v1.0.0 ...
-URL: http://127.0.0.1:.+/1.0.0/toolctl-test-tool
+toolctl-test-tool darwin/amd64 v1.0.0 ...
+URL: {{downloadServerURL}}/darwin/amd64/1.0.0/toolctl-test-tool
 HTTP status: 404
-toolctl-test-tool v2.0.0 ...
-URL: http://127.0.0.1:.+/2.0.0/toolctl-test-tool
+toolctl-test-tool darwin/amd64 v2.0.0 ...
+URL: {{downloadServerURL}}/darwin/amd64/2.0.0/toolctl-test-tool
 HTTP status: 404
-$`,
+toolctl-test-tool darwin/arm64 v0.1.0 ...
+URL: {{downloadServerURL}}/darwin/arm64/0.1.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool darwin/arm64 v0.1.1 ...
+URL: {{downloadServerURL}}/darwin/arm64/0.1.1/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool darwin/arm64 v0.2.0 ...
+URL: {{downloadServerURL}}/darwin/arm64/0.2.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool darwin/arm64 v0.3.0 ...
+URL: {{downloadServerURL}}/darwin/arm64/0.3.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool darwin/arm64 v1.0.0 ...
+URL: {{downloadServerURL}}/darwin/arm64/1.0.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool darwin/arm64 v2.0.0 ...
+URL: {{downloadServerURL}}/darwin/arm64/2.0.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/amd64 v0.1.0 already added
+toolctl-test-tool linux/amd64 v0.1.1 already added
+toolctl-test-tool linux/amd64 v0.1.2 ...
+URL: {{downloadServerURL}}/linux/amd64/0.1.2/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/amd64 v0.1.3 ...
+URL: {{downloadServerURL}}/linux/amd64/0.1.3/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/amd64 v0.2.0 ...
+URL: {{downloadServerURL}}/linux/amd64/0.2.0/toolctl-test-tool
+SHA256: 92100d959b50115ff3760255480a1ecb6f8558d26f7757cd46b45223f13ac6f1
+toolctl-test-tool linux/amd64 v0.2.1 ...
+URL: {{downloadServerURL}}/linux/amd64/0.2.1/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/amd64 v0.2.2 ...
+URL: {{downloadServerURL}}/linux/amd64/0.2.2/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/amd64 v0.3.0 ...
+URL: {{downloadServerURL}}/linux/amd64/0.3.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/amd64 v0.4.0 ...
+URL: {{downloadServerURL}}/linux/amd64/0.4.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/amd64 v1.0.0 ...
+URL: {{downloadServerURL}}/linux/amd64/1.0.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/amd64 v2.0.0 ...
+URL: {{downloadServerURL}}/linux/amd64/2.0.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/arm64 v0.1.0 ...
+URL: {{downloadServerURL}}/linux/arm64/0.1.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/arm64 v0.1.1 ...
+URL: {{downloadServerURL}}/linux/arm64/0.1.1/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/arm64 v0.2.0 ...
+URL: {{downloadServerURL}}/linux/arm64/0.2.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/arm64 v0.3.0 ...
+URL: {{downloadServerURL}}/linux/arm64/0.3.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/arm64 v1.0.0 ...
+URL: {{downloadServerURL}}/linux/arm64/1.0.0/toolctl-test-tool
+HTTP status: 404
+toolctl-test-tool linux/arm64 v2.0.0 ...
+URL: {{downloadServerURL}}/linux/arm64/2.0.0/toolctl-test-tool
+HTTP status: 404
+`,
 			wantFiles: APIContents{
 				APIFile{
 					Path: fmt.Sprintf(
@@ -148,6 +279,9 @@ $`,
 				return
 			}
 
+			if tt.wantOut != "" {
+				tt.wantOut = strings.ReplaceAll(tt.wantOut, "{{downloadServerURL}}", downloadServer.URL)
+			}
 			checkWantOut(t, tt, buf)
 
 			for _, file := range tt.wantFiles {

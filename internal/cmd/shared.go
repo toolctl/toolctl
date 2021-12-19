@@ -7,7 +7,6 @@ import (
 	"io"
 	"os/exec"
 	"regexp"
-	"runtime"
 	"strings"
 
 	"github.com/Masterminds/semver"
@@ -16,12 +15,12 @@ import (
 )
 
 // ArgToTool converts a command line argument to a tool.
-func ArgToTool(arg string, versionAllowed bool) (tool api.Tool, err error) {
+func ArgToTool(arg string, os string, arch string, versionAllowed bool) (tool api.Tool, err error) {
 	splitArg := strings.SplitN(arg, "@", 2)
 	tool = api.Tool{
 		Name: splitArg[0],
-		OS:   runtime.GOOS,
-		Arch: runtime.GOARCH,
+		OS:   os,
+		Arch: arch,
 	}
 	if len(splitArg) == 2 {
 		if !versionAllowed {
@@ -34,11 +33,13 @@ func ArgToTool(arg string, versionAllowed bool) (tool api.Tool, err error) {
 }
 
 // ArgsToTools converts a list of command line arguments to a list of tools.
-func ArgsToTools(args []string, versionAllowed bool) ([]api.Tool, error) {
+func ArgsToTools(
+	args []string, os string, arch string, versionAllowed bool,
+) ([]api.Tool, error) {
 	var tools []api.Tool
 
 	for _, arg := range args {
-		tool, err := ArgToTool(arg, versionAllowed)
+		tool, err := ArgToTool(arg, os, arch, versionAllowed)
 		if err != nil {
 			return []api.Tool{}, err
 		}
