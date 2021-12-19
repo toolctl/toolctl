@@ -174,7 +174,7 @@ exit 1
 `,
 		},
 		{
-			name: "supported tool with vmismatch and supported tool",
+			name: "supported tool with version mismatch and supported tool",
 			cliArgs: []string{
 				"toolctl-test-tool-version-mismatch", "toolctl-test-tool",
 			},
