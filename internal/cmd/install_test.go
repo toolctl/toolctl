@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io/ioutil"
 	"os"
+	"runtime"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -51,13 +52,45 @@ Global Flags:
 		{
 			name:    "supported tool as .tar.gz",
 			cliArgs: []string{"toolctl-test-tool-tar-gz"},
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool-tar-gz",
+					version: "0.1.0",
+					tarGz:   true,
+				},
+			},
 			wantOut: `👷 Installing v0.1.0 ...
 🎉 Successfully installed
 `,
 		},
 		{
 			name:    "supported tool as .tar.gz in subdir",
-			cliArgs: []string{"toolctl-test-tool-tar-gz-subdir"},
+			cliArgs: []string{"toolctl-test-tool-tar-gz"},
+			supportedTools: []supportedTool{
+				{
+					name:        "toolctl-test-tool-tar-gz",
+					version:     "0.1.0",
+					tarGz:       true,
+					tarGzSubdir: runtime.GOOS + "-" + runtime.GOARCH,
+				},
+			},
+			wantOut: `👷 Installing v0.1.0 ...
+🎉 Successfully installed
+`,
+		},
+		{
+			name:    "supported tool as .tar.gz in random subdir with platform suffix",
+			cliArgs: []string{"toolctl-test-tool-tar-gz"},
+			supportedTools: []supportedTool{
+				{
+					name:        "toolctl-test-tool-tar-gz",
+					version:     "0.1.0",
+					tarGz:       true,
+					tarGzSubdir: "out",
+					tarGzBinaryName: "toolctl-test-tool-tar-gz-" +
+						runtime.GOOS + "-" + runtime.GOARCH,
+				},
+			},
 			wantOut: `👷 Installing v0.1.0 ...
 🎉 Successfully installed
 `,
@@ -113,11 +146,11 @@ $`,
 $`,
 		},
 		{
-			name: "supported tool, latest valready installed",
+			name: "supported tool, latest version already installed",
 			preinstalledTools: []preinstalledTool{
 				{
-					Name: "toolctl-test-tool",
-					FileContents: `#!/bin/sh
+					name: "toolctl-test-tool",
+					fileContents: `#!/bin/sh
 echo "v0.1.1"
 `,
 				},
@@ -131,8 +164,8 @@ echo "v0.1.1"
 			name: "supported tool, other version already installed",
 			preinstalledTools: []preinstalledTool{
 				{
-					Name: "toolctl-test-tool",
-					FileContents: `#!/bin/sh
+					name: "toolctl-test-tool",
+					fileContents: `#!/bin/sh
 echo "v0.1.0"
 `,
 				},
@@ -146,8 +179,8 @@ echo "v0.1.0"
 			name: "supported tool, version could not be determined",
 			preinstalledTools: []preinstalledTool{
 				{
-					Name: "toolctl-test-tool",
-					FileContents: `#!/bin/sh
+					name: "toolctl-test-tool",
+					fileContents: `#!/bin/sh
 echo "version flag not supported" >&2
 exit 1
 `,
@@ -188,7 +221,7 @@ Error: installation failed: Expected v0.1.0, but installed v0.2.0
 	originalPathEnv := os.Getenv("PATH")
 
 	for _, tt := range tests {
-		toolctlAPI, apiServer, downloadServer, err := setupRemoteAPI()
+		toolctlAPI, apiServer, downloadServer, err := setupRemoteAPI(tt.supportedTools)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -199,7 +232,7 @@ Error: installation failed: Expected v0.1.0, but installed v0.2.0
 		}
 
 		var preinstalledTempInstallDir string
-		if !cmp.Equal(tt.preinstalledTools, preinstalledTool{}) {
+		if !cmp.Equal(tt.preinstalledTools, []preinstalledTool{}) {
 			preinstalledTempInstallDir, err = install(
 				t, toolctlAPI, tt.preinstalledTools, tt.preinstalledToolIsSymlinked,
 				originalPathEnv,

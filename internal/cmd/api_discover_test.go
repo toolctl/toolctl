@@ -133,8 +133,8 @@ toolctl-test-tool linux/arm64 v2.0.0 ...
 URL: {{downloadServerURL}}/linux/arm64/2.0.0/toolctl-test-tool
 HTTP status: 404
 `,
-			wantFiles: APIContents{
-				APIFile{
+			wantFiles: []APIFile{
+				{
 					Path: fmt.Sprintf(
 						"toolctl-test-tool/%s-%s/0.2.0.yaml", runtime.GOOS, runtime.GOARCH,
 					),
@@ -239,8 +239,8 @@ toolctl-test-tool linux/arm64 v2.0.0 ...
 URL: {{downloadServerURL}}/linux/arm64/2.0.0/toolctl-test-tool
 HTTP status: 404
 `,
-			wantFiles: APIContents{
-				APIFile{
+			wantFiles: []APIFile{
+				{
 					Path: fmt.Sprintf(
 						"toolctl-test-tool/%s-%s/0.2.0.yaml", runtime.GOOS, runtime.GOARCH,
 					),
