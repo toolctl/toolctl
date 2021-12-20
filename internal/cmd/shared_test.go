@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
-	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -88,21 +87,31 @@ func TestArgsToTools(t *testing.T) {
 const localAPIBasePath = "/toolctl/tools/v0"
 
 type preinstalledTool struct {
-	Name         string
-	FileContents string
+	name         string
+	fileContents string
 }
+
+type supportedTool struct {
+	name            string
+	version         string
+	tarGz           bool
+	tarGzSubdir     string
+	tarGzBinaryName string
+}
+
 type test struct {
 	name                        string
 	installDirNotFound          bool
 	installDirNotInPath         bool
 	installDirNotWritable       bool
+	supportedTools              []supportedTool
 	preinstalledTools           []preinstalledTool
 	preinstalledToolIsSymlinked bool
 	cliArgs                     []string
 	wantErr                     bool
 	wantOut                     string
 	wantOutRegex                string
-	wantFiles                   APIContents
+	wantFiles                   []APIFile
 }
 
 func install(
@@ -120,8 +129,8 @@ func install(
 
 	for _, preinstalledTool := range preinstalledTools {
 		err = os.WriteFile(
-			filepath.Join(tempInstallDir, preinstalledTool.Name),
-			[]byte(preinstalledTool.FileContents),
+			filepath.Join(tempInstallDir, preinstalledTool.name),
+			[]byte(preinstalledTool.fileContents),
 			0755,
 		)
 		if err != nil {
@@ -149,22 +158,33 @@ func install(
 	return
 }
 
-func setupRemoteAPI() (
+func setupRemoteAPI(supportedTools []supportedTool) (
 	toolctlAPI api.ToolctlAPI, apiServer *httptest.Server,
 	downloadServer *httptest.Server, err error,
 ) {
-	var tarGzSHA256, tarGzInSubdirSHA256 string
-	downloadServer, tarGzSHA256, tarGzInSubdirSHA256, err = setupDownloadServer()
+	var downloadServerFS afero.Fs
+	downloadServer, downloadServerFS, err = setupDownloadServer()
 	if err != nil {
 		return
 	}
 
 	localAPIFS := afero.NewMemMapFs()
 
-	apiContents := getDefaultAPIContents(
-		downloadServer.URL, tarGzSHA256, tarGzInSubdirSHA256,
-	)
-	for _, f := range apiContents {
+	apiFiles := getDefaultAPIFiles(downloadServer.URL)
+
+	for _, supportedTool := range supportedTools {
+		var sha256 string
+		sha256, err = supportedToolToDownloadFile(downloadServerFS, supportedTool)
+		if err != nil {
+			return
+		}
+		apiFiles = append(
+			apiFiles,
+			supportedToolToAPIContents(supportedTool, downloadServer.URL, sha256)...,
+		)
+	}
+
+	for _, f := range apiFiles {
 		err = afero.WriteFile(localAPIFS, f.Path, []byte(f.Contents), 0644)
 		if err != nil {
 			return
@@ -187,18 +207,15 @@ func setupRemoteAPI() (
 func setupLocalAPI() (
 	localAPIFS afero.Fs, downloadServer *httptest.Server, err error,
 ) {
-	var tarGzSHA256, tarGzInSubdirSHA256 string
-	downloadServer, tarGzSHA256, tarGzInSubdirSHA256, err = setupDownloadServer()
+	downloadServer, _, err = setupDownloadServer()
 	if err != nil {
 		return
 	}
 
 	localAPIFS = afero.NewMemMapFs()
 
-	apiContents := getDefaultAPIContents(
-		downloadServer.URL, tarGzSHA256, tarGzInSubdirSHA256,
-	)
-	for _, f := range apiContents {
+	apiFiles := getDefaultAPIFiles(downloadServer.URL)
+	for _, f := range apiFiles {
 		err = afero.WriteFile(localAPIFS, f.Path, []byte(f.Contents), 0644)
 		if err != nil {
 			return
@@ -208,19 +225,15 @@ func setupLocalAPI() (
 	return
 }
 
-type APIContents []APIFile
-
 type APIFile struct {
 	Path     string
 	Contents string
 }
 
-func getDefaultAPIContents(
-	downloadServerURL string, tarGzFileSHA256 string, tarGzInSubdirSHA256 string,
-) APIContents {
-	apiContents := APIContents{
+func getDefaultAPIFiles(downloadServerURL string) []APIFile {
+	apiFiles := []APIFile{
 		// List of supported tools
-		APIFile{
+		{
 			Path: path.Join(localAPIBasePath, "meta.yaml"),
 			Contents: `tools:
   - toolctl-test-tool
@@ -230,7 +243,7 @@ func getDefaultAPIContents(
 		},
 
 		// Supported tool
-		APIFile{
+		{
 			Path: path.Join(localAPIBasePath, "toolctl-test-tool/meta.yaml"),
 			Contents: `description: toolctl test tool
 downloadURLTemplate: ` + downloadServerURL + `/{{.OS}}/{{.Arch}}/{{.Version}}/{{.Name}}
@@ -239,28 +252,8 @@ versionArgs: [version, --short]
 `,
 		},
 
-		// Supported tool as .tar.gz
-		APIFile{
-			Path: path.Join(localAPIBasePath, "toolctl-test-tool-tar-gz/meta.yaml"),
-			Contents: `description: toolctl test tool
-downloadURLTemplate: ` + downloadServerURL + `/{{.OS}}/{{.Arch}}/{{.Version}}/{{.Name}}.tar.gz
-homepage: https://toolctl.io/
-versionArgs: [version, --short]
-`,
-		},
-
-		// Supported tool as .tar.gz in subdir
-		APIFile{
-			Path: path.Join(localAPIBasePath, "toolctl-test-tool-tar-gz-subdir/meta.yaml"),
-			Contents: `description: toolctl test tool
-downloadURLTemplate: ` + downloadServerURL + `/{{.OS}}/{{.Arch}}/{{.Version}}/{{.Name}}.tar.gz
-homepage: https://toolctl.io/
-versionArgs: [version, --short]
-`,
-		},
-
 		// Tool that is supported, but not on the current platform
-		APIFile{
+		{
 			Path: path.Join(localAPIBasePath, "toolctl-test-tool-unsupported-on-current-platform/meta.yaml"),
 			Contents: `description: Test tool unsupported on current OS/Arch
 downloadURLTemplate: ` + downloadServerURL + `/{{.OS}}/{{.Arch}}/{{.Version}}/{{.Name}}
@@ -270,7 +263,7 @@ versionArgs: [version, --short]
 		},
 
 		// Tool with version mismatch
-		APIFile{
+		{
 			Path: path.Join(
 				localAPIBasePath, "toolctl-test-tool-version-mismatch/meta.yaml",
 			),
@@ -283,7 +276,7 @@ versionArgs: [version, --short]
 	}
 
 	for _, os := range []string{"darwin", "linux"} {
-		apiContents = append(apiContents,
+		apiFiles = append(apiFiles,
 			// Supported tool
 			APIFile{
 				Path: path.Join(localAPIBasePath, "toolctl-test-tool", os+"-amd64", "meta.yaml"),
@@ -301,36 +294,6 @@ sha256: 69b2af71462f6deb084b9a38e5ffa2446ab1930232a887c2874d42e81bcc21dd`,
 				Path: path.Join(localAPIBasePath, "toolctl-test-tool", os+"-amd64", "0.1.1.yaml"),
 				Contents: `url: ` + downloadServerURL + `/` + os + `/amd64/0.1.1/toolctl-test-tool
 sha256: e05dd45f0c922a9ecc659c9f6234159c9820678c0b70d1ca9e48721a379b2143`,
-			},
-
-			// Supported tool as .tar.gz
-			APIFile{
-				Path: path.Join(localAPIBasePath, "toolctl-test-tool-tar-gz", os+"-amd64", "meta.yaml"),
-				Contents: `version:
-  earliest: 0.1.0
-  latest: 0.1.0
-`,
-			},
-			APIFile{
-				Path: path.Join(localAPIBasePath, "toolctl-test-tool-tar-gz", os+"-amd64", "0.1.0.yaml"),
-				Contents: fmt.Sprintf(`url: %s/%s/%s/0.1.0/toolctl-test-tool-tar-gz.tar.gz
-sha256: %s
-`, downloadServerURL, "darwin", "amd64", tarGzFileSHA256),
-			},
-
-			// Supported tool as .tar.gz in subdir
-			APIFile{
-				Path: path.Join(localAPIBasePath, "toolctl-test-tool-tar-gz-subdir", os+"-amd64", "meta.yaml"),
-				Contents: `version:
-  earliest: 0.1.0
-  latest: 0.1.0
-`,
-			},
-			APIFile{
-				Path: path.Join(localAPIBasePath, "toolctl-test-tool-tar-gz-subdir", os+"-amd64", "0.1.0.yaml"),
-				Contents: fmt.Sprintf(`url: %s/%s/%s/0.1.0/toolctl-test-tool-tar-gz-subdir.tar.gz
-sha256: %s
-`, downloadServerURL, "darwin", "amd64", tarGzInSubdirSHA256),
 			},
 
 			// Tool with version mismatch
@@ -356,18 +319,17 @@ sha256: ce04245b5e5ef4aa9b4205b61bedb5e2376a83336b3d72318addbc2c45b553c6
 		)
 	}
 
-	return apiContents
+	return apiFiles
 }
 
 func setupDownloadServer() (
-	downloadServer *httptest.Server, tarGzSHA256 string,
-	tarGzInSubDirSHA256 string, err error,
+	downloadServer *httptest.Server, downloadServerFS afero.Fs, err error,
 ) {
-	downloadFS := afero.NewMemMapFs()
+	downloadServerFS = afero.NewMemMapFs()
 
 	for _, os := range []string{"darwin", "linux"} {
 		err = afero.WriteFile(
-			downloadFS,
+			downloadServerFS,
 			"/"+os+"/amd64/0.1.0/toolctl-test-tool",
 			[]byte(`#!/bin/sh
 echo "v0.1.0"
@@ -378,18 +340,8 @@ echo "v0.1.0"
 			return
 		}
 
-		tarGzSHA256, err = createTarGzTool(downloadFS, false)
-		if err != nil {
-			return
-		}
-
-		tarGzInSubDirSHA256, err = createTarGzTool(downloadFS, true)
-		if err != nil {
-			return
-		}
-
 		err = afero.WriteFile(
-			downloadFS,
+			downloadServerFS,
 			"/"+os+"/amd64/0.1.1/toolctl-test-tool",
 			[]byte(`#!/bin/sh
 echo "v0.1.1"
@@ -401,7 +353,7 @@ echo "v0.1.1"
 		}
 
 		err = afero.WriteFile(
-			downloadFS,
+			downloadServerFS,
 			"/"+os+"/amd64/0.2.0/toolctl-test-tool",
 			[]byte(`#!/bin/sh
 echo "v0.2.0"
@@ -413,7 +365,7 @@ echo "v0.2.0"
 		}
 
 		err = afero.WriteFile(
-			downloadFS,
+			downloadServerFS,
 			"/"+os+"/amd64/0.1.0/toolctl-test-tool-version-mismatch",
 			[]byte(`#!/bin/sh
 echo "v0.2.0"
@@ -425,82 +377,8 @@ echo "v0.2.0"
 		}
 	}
 
-	downloadFileServer := http.FileServer(afero.NewHttpFs(downloadFS).Dir("/"))
+	downloadFileServer := http.FileServer(afero.NewHttpFs(downloadServerFS).Dir("/"))
 	downloadServer = httptest.NewServer(downloadFileServer)
-
-	return
-}
-
-func createTarGzTool(downloadFS afero.Fs, inSubdir bool) (sha256 string, err error) {
-	filename := "toolctl-test-tool-tar-gz"
-	if inSubdir {
-		filename += "-subdir"
-	}
-
-	tarFilePath := "/darwin/amd64/0.1.0/" + filename + ".tar"
-	tarGzFilePath := tarFilePath + ".gz"
-	subdirWithTrailingSlash := ""
-	if inSubdir {
-		subdirWithTrailingSlash = strings.Replace(path.Base(tarGzFilePath), ".tar.gz", "", 1) + "/"
-	}
-
-	tarFile, err := downloadFS.Create(tarFilePath)
-	if err != nil {
-		return
-	}
-	tarFileOut, err := downloadFS.OpenFile(tarFile.Name(), os.O_WRONLY, 0644)
-	if err != nil {
-		return
-	}
-	tar := archiver.NewTar()
-	err = tar.Create(tarFileOut)
-	if err != nil {
-		return
-	}
-	inFile, err := downloadFS.Open("/darwin/amd64/0.1.0/toolctl-test-tool")
-	if err != nil {
-		return
-	}
-	inFileStat, err := inFile.Stat()
-	if err != nil {
-		return
-	}
-	err = tar.Write(archiver.File{
-		FileInfo: archiver.FileInfo{
-			FileInfo:   inFileStat,
-			CustomName: subdirWithTrailingSlash + filename,
-		},
-		ReadCloser: inFile,
-	})
-	if err != nil {
-		return
-	}
-	err = tar.Close()
-	if err != nil {
-		return
-	}
-
-	tarFileIn, err := downloadFS.Open(tarFilePath)
-	if err != nil {
-		return
-	}
-	tarGzFile, err := downloadFS.Create(tarGzFilePath)
-	if err != nil {
-		return
-	}
-	tarGzFileOut, err := downloadFS.OpenFile(tarGzFile.Name(), os.O_WRONLY, 0644)
-	if err != nil {
-		return
-	}
-	err = archiver.NewGz().Compress(tarFileIn, tarGzFileOut)
-	if err != nil {
-		return
-	}
-
-	sha256, err = calculateSHA256(downloadFS, tarGzFilePath)
-	if err != nil {
-		return
-	}
 
 	return
 }
@@ -540,5 +418,164 @@ func checkWantOut(t *testing.T, tt test, buf *bytes.Buffer) {
 		if !matched {
 			t.Errorf("Error matching regex: %v, output: %s", tt.wantOutRegex, buf.String())
 		}
+	}
+}
+
+func supportedToolToDownloadFile(
+	downloadServerFS afero.Fs, supportedTool supportedTool,
+) (sha256 string, err error) {
+	if !supportedTool.tarGz {
+		err = fmt.Errorf("Only tar.gz supported for now")
+		return
+	}
+
+	if supportedTool.tarGzBinaryName == "" {
+		supportedTool.tarGzBinaryName = supportedTool.name
+	}
+
+	filePath, err := createBinaryFile(downloadServerFS, supportedTool)
+	if err != nil {
+		return
+	}
+
+	tarFilePath, err := createTarFile(downloadServerFS, filePath, supportedTool)
+	if err != nil {
+		return
+	}
+
+	tarGzFilePath, err := createTarGzFile(tarFilePath, downloadServerFS)
+	if err != nil {
+		return
+	}
+
+	sha256, err = calculateSHA256(downloadServerFS, tarGzFilePath)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func createTarGzFile(tarFilePath string, downloadServerFS afero.Fs) (tarGzFilePath string, err error) {
+	tarGzFilePath = tarFilePath + ".gz"
+
+	tarFileIn, err := downloadServerFS.Open(tarFilePath)
+	if err != nil {
+		return
+	}
+
+	tarGzFile, err := downloadServerFS.Create(tarGzFilePath)
+	if err != nil {
+		return
+	}
+
+	tarGzFileOut, err := downloadServerFS.OpenFile(tarGzFile.Name(), os.O_WRONLY, 0644)
+	if err != nil {
+		return
+	}
+
+	err = archiver.NewGz().Compress(tarFileIn, tarGzFileOut)
+
+	return
+}
+
+func createTarFile(
+	downloadServerFS afero.Fs, filePath string, supportedTool supportedTool,
+) (tarFilePath string, err error) {
+	tarFilePath = filePath + ".tar"
+	tarFile, err := downloadServerFS.Create(tarFilePath)
+	if err != nil {
+		return
+	}
+	defer tarFile.Close()
+
+	tarFileOut, err := downloadServerFS.OpenFile(tarFile.Name(), os.O_WRONLY, 0644)
+	if err != nil {
+		return
+	}
+
+	tar := archiver.NewTar()
+	err = tar.Create(tarFileOut)
+	if err != nil {
+		return
+	}
+
+	inFile, err := downloadServerFS.Open(filePath)
+	if err != nil {
+		return
+	}
+
+	inFileStat, err := inFile.Stat()
+	if err != nil {
+		return
+	}
+
+	err = tar.Write(archiver.File{
+		FileInfo: archiver.FileInfo{
+			FileInfo: inFileStat,
+			CustomName: filepath.Join(
+				supportedTool.tarGzSubdir, supportedTool.tarGzBinaryName),
+		},
+		ReadCloser: inFile,
+	})
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func createBinaryFile(
+	downloadServerFS afero.Fs, supportedTool supportedTool,
+) (filePath string, err error) {
+	filePath = "/" + filepath.Join(
+		runtime.GOOS, runtime.GOARCH, supportedTool.version, supportedTool.name,
+	)
+	err = afero.WriteFile(
+		downloadServerFS,
+		filePath,
+		[]byte(`#!/bin/sh
+echo v`+supportedTool.version+`
+`),
+		0644,
+	)
+	return
+}
+
+func supportedToolToAPIContents(
+	supportedTool supportedTool, downloadServerURL string, sha256 string,
+) (apiFiles []APIFile) {
+	return []APIFile{
+		{
+			Path: path.Join(localAPIBasePath, supportedTool.name, "meta.yaml"),
+			Contents: `description: toolctl test tool
+downloadURLTemplate: ` + downloadServerURL + `/{{.OS}}/{{.Arch}}/{{.Version}}/{{.Name}}.tar.gz
+homepage: https://toolctl.io/
+versionArgs: [version, --short]
+`,
+		},
+		{
+			Path: path.Join(
+				localAPIBasePath, supportedTool.name, runtime.GOOS+"-"+runtime.GOARCH,
+				"meta.yaml",
+			),
+			Contents: fmt.Sprintf(`version:
+  earliest: %s
+  latest: %s
+`, supportedTool.version, supportedTool.version),
+		},
+		{
+			Path: path.Join(
+				localAPIBasePath, supportedTool.name, runtime.GOOS+"-"+runtime.GOARCH,
+				supportedTool.version+".yaml",
+			),
+			Contents: fmt.Sprintf(
+				`url: %s/%s/%s/%s/%s.tar.gz
+sha256: %s
+`,
+				downloadServerURL, runtime.GOOS, runtime.GOARCH, supportedTool.version,
+				supportedTool.name, sha256,
+			),
+		},
 	}
 }

@@ -66,8 +66,8 @@ Global Flags:
 			name: "supported tool, latest version already installed",
 			preinstalledTools: []preinstalledTool{
 				{
-					Name: "toolctl-test-tool",
-					FileContents: `#!/bin/sh
+					name: "toolctl-test-tool",
+					fileContents: `#!/bin/sh
 echo "v0.1.1"
 `,
 				},
@@ -82,8 +82,8 @@ $`,
 			name: "supported tool, other version already installed",
 			preinstalledTools: []preinstalledTool{
 				{
-					Name: "toolctl-test-tool",
-					FileContents: `#!/bin/sh
+					name: "toolctl-test-tool",
+					fileContents: `#!/bin/sh
 echo "v0.1.0"
 `,
 				},
@@ -98,8 +98,8 @@ $`,
 			name: "supported tool, version could not be determined",
 			preinstalledTools: []preinstalledTool{
 				{
-					Name: "toolctl-test-tool",
-					FileContents: `#!/bin/sh
+					name: "toolctl-test-tool",
+					fileContents: `#!/bin/sh
 echo "version flag not supported" >&2
 exit 1
 `,
@@ -115,8 +115,8 @@ exit 1
 			name: "supported tool symlinked",
 			preinstalledTools: []preinstalledTool{
 				{
-					Name: "toolctl-test-tool",
-					FileContents: `#!/bin/sh
+					name: "toolctl-test-tool",
+					fileContents: `#!/bin/sh
 echo "v0.1.1"
 `,
 				},
@@ -148,7 +148,7 @@ $`,
 	originalPathEnv := os.Getenv("PATH")
 
 	for _, tt := range tests {
-		toolctlAPI, apiServer, downloadServer, err := setupRemoteAPI()
+		toolctlAPI, apiServer, downloadServer, err := setupRemoteAPI(tt.supportedTools)
 		if err != nil {
 			t.Fatal(err)
 		}

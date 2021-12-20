@@ -51,13 +51,13 @@ Global Flags:
 			name: "toolctl-test-tool installed",
 			preinstalledTools: []preinstalledTool{
 				{
-					Name: "toolctl-test-tool",
-					FileContents: `#!/bin/bash
+					name: "toolctl-test-tool",
+					fileContents: `#!/bin/bash
 echo v0.1.0
 `},
 				{
-					Name: "toolctl-another-test-tool",
-					FileContents: `#!/bin/bash
+					name: "toolctl-another-test-tool",
+					fileContents: `#!/bin/bash
 echo v0.1.0
 `},
 			},
@@ -71,7 +71,7 @@ toolctl-another-test-tool
 	originalPathEnv := os.Getenv("PATH")
 
 	for _, tt := range tests {
-		toolctlAPI, apiServer, downloadServer, err := setupRemoteAPI()
+		toolctlAPI, apiServer, downloadServer, err := setupRemoteAPI(tt.supportedTools)
 		if err != nil {
 			t.Fatalf("%s: SetupRemoteAPI() failed: %v", tt.name, err)
 		}

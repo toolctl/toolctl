@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -174,7 +175,7 @@ func install(
 			return
 		}
 		// Locate the extracted binary
-		extractedBinaryPath, err = locateExtractedBinary(downloadedFilePath, tool)
+		extractedBinaryPath, err = locateExtractedBinary(tempDir, tool)
 		if err != nil {
 			return
 		}
@@ -269,33 +270,45 @@ func infoPrintInstalledVersion(
 	return
 }
 
-func locateExtractedBinary(
-	downloadedFilePath string, tool api.Tool,
-) (extractedBinaryPath string, err error) {
-	// The binary has been extracted to a subdirectory.
-	// Example: https://github.com/derailed/k9s/releases/download/v0.25.7/k9s_Darwin_x86_64.tar.gz
-	extractedBinaryPath = filepath.Join(
-		strings.Replace(downloadedFilePath, ".tar.gz", "", 1), tool.Name,
+type binaryLocatedError struct{}
+
+func (b binaryLocatedError) Error() string {
+	return "binary located"
+}
+
+func locateExtractedBinary(dir string, tool api.Tool) (
+	extractedBinaryPath string, err error,
+) {
+	err = filepath.WalkDir(dir,
+		func(path string, d fs.DirEntry, err error) error {
+			if d.IsDir() {
+				return nil
+			}
+
+			if filepath.Base(path) == tool.Name ||
+				filepath.Base(path) == tool.Name+"-"+runtime.GOOS+"-"+runtime.GOARCH {
+				extractedBinaryPath = path
+				return fmt.Errorf("%w", binaryLocatedError{})
+			}
+
+			return nil
+		},
 	)
-	_, err = os.Stat(extractedBinaryPath)
-	if err == nil {
-		return
+
+	if err != nil {
+		if !errors.Is(err, binaryLocatedError{}) {
+			return
+		}
+		err = nil
 	}
 
-	// The binary has been extracted directly to the directory.
-	// Example: https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv4.4.1/kustomize_v4.4.1_darwin_amd64.tar.gz
-	extractedBinaryPath = filepath.Join(
-		path.Dir(downloadedFilePath), tool.Name,
-	)
-	_, err = os.Stat(extractedBinaryPath)
-	if err == nil {
-		return
+	if extractedBinaryPath == "" {
+		err = fmt.Errorf(
+			"failed to locate extracted binary for %s",
+			tool.Name,
+		)
 	}
 
-	err = fmt.Errorf(
-		"failed to locate extracted binary for %s",
-		tool.Name,
-	)
 	return
 }
 
