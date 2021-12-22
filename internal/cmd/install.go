@@ -286,7 +286,8 @@ func locateExtractedBinary(dir string, tool api.Tool) (
 			}
 
 			if filepath.Base(path) == tool.Name ||
-				filepath.Base(path) == tool.Name+"-"+runtime.GOOS+"-"+runtime.GOARCH {
+				filepath.Base(path) == tool.Name+"-"+runtime.GOOS+"-"+runtime.GOARCH ||
+				filepath.Base(path) == tool.Name+"_"+runtime.GOOS+"_"+runtime.GOARCH {
 				extractedBinaryPath = path
 				return fmt.Errorf("%w", binaryLocatedError{})
 			}

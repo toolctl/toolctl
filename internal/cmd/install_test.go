@@ -79,7 +79,7 @@ Global Flags:
 `,
 		},
 		{
-			name:    "supported tool as .tar.gz in random subdir with platform suffix",
+			name:    "supported tool as .tar.gz in random subdir with dashed platform suffix",
 			cliArgs: []string{"toolctl-test-tool-tar-gz"},
 			supportedTools: []supportedTool{
 				{
@@ -87,8 +87,26 @@ Global Flags:
 					version:     "0.1.0",
 					tarGz:       true,
 					tarGzSubdir: "out",
-					tarGzBinaryName: "toolctl-test-tool-tar-gz-" +
+					tarGzBinaryName: "toolctl-test-tool-tar-gz" + "-" +
 						runtime.GOOS + "-" + runtime.GOARCH,
+				},
+			},
+			wantOut: `👷 Installing v0.1.0 ...
+🎉 Successfully installed
+`,
+		},
+		{
+			name:    "supported tool as .tar.gz in random subdir with underscored platform suffix",
+			cliArgs: []string{"toolctl-test-tool-tar-gz"},
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool-tar-gz",
+					version: "0.1.0",
+					tarGz:   true,
+					tarGzSubdir: "toolctl-test-tool-tar-gz" + "_" +
+						runtime.GOOS + "_" + runtime.GOARCH,
+					tarGzBinaryName: "toolctl-test-tool-tar-gz" + "_" +
+						runtime.GOOS + "_" + runtime.GOARCH,
 				},
 			},
 			wantOut: `👷 Installing v0.1.0 ...
