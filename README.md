@@ -23,7 +23,7 @@ You can [download the latest version of toolctl](https://github.com/toolctl/tool
 
 ## Getting Started
 
-### Install the latest versions of a tool
+### Install the latest version of a tool
 
 ```text
 ❯ toolctl install k9s
