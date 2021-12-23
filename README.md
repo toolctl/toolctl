@@ -82,6 +82,7 @@ Currently it supports the following tools:
 - kuberlr
 - kustomize
 - minikube
+- yq
 
 ## Can I manage _my-favorite-tool_ with `toolctl`?
 
