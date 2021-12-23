@@ -9,13 +9,19 @@
 
 `toolctl` helps you manage your tools on Linux and macOS.
 
-## How do I install `toolctl`?
+## Installation
 
-For now, please [download the latest version](https://github.com/toolctl/toolctl/releases/latest) for your platform.
+### Automated
 
-In the not-too-distant future, we will also provide an easy-to-use setup script for `toolctl`.
+```bash
+sudo /usr/bin/env bash -c "$(curl -fsSL https://raw.githubusercontent.com/toolctl/install/main/install)"
+```
 
-## What can I do with `toolctl`?
+### Manually
+
+You can [download the latest version of toolctl](https://github.com/toolctl/toolctl/releases/latest) and run it from any directory you like.
+
+## Getting Started
 
 ### Install the latest versions of a tool
 
@@ -72,9 +78,9 @@ In the not-too-distant future, we will also provide an easy-to-use setup script 
 [kustomize] 🔄 kustomize v3.9.4 is installed at /usr/local/bin/kustomize
 ```
 
-## Which tools does `toolctl` support?
+## Supported Tools
 
-Currently it supports the following tools:
+Currently, `toolctl` supports the following tools:
 
 - age
 - helm
@@ -88,17 +94,16 @@ Currently it supports the following tools:
 - minikube
 - yq
 
-## Can I manage _my-favorite-tool_ with `toolctl`?
+Our goal is to support as many tools as possible, so expect this list to grow significantly over time.
 
-`toolctl` supports any tool that:
+In general, `toolctl` supports any tool that:
 
 ✔ consists of a single executable file\
 ✔ runs on Linux and/or macOS\
 ✔ includes a version command or flag\
 ✔ provides its source code and precompiled binaries online under a free and open source license
 
-You know a tool that fits all of these criteria?
-Please [create an issue](https://github.com/toolctl/toolctl/issues/new) and let us know!
+If you know a tool that fits all of these criteria, please [open an issue](https://github.com/toolctl/toolctl/issues/new) and let us know!
 
 ## Credits
 
