@@ -100,36 +100,37 @@ type supportedTool struct {
 }
 
 type test struct {
-	name                        string
-	installDirNotFound          bool
-	installDirNotInPath         bool
-	installDirNotWritable       bool
-	supportedTools              []supportedTool
-	preinstalledTools           []preinstalledTool
-	preinstalledToolIsSymlinked bool
-	cliArgs                     []string
-	wantErr                     bool
-	wantOut                     string
-	wantOutRegex                string
-	wantFiles                   []APIFile
+	name                         string
+	installDirNotFound           bool
+	installDirNotInPath          bool
+	installDirNotWritable        bool
+	installDirNotPreinstalledDir bool
+	supportedTools               []supportedTool
+	preinstalledTools            []preinstalledTool
+	preinstalledToolIsSymlinked  bool
+	cliArgs                      []string
+	wantErr                      bool
+	wantOut                      string
+	wantOutRegex                 string
+	wantFiles                    []APIFile
 }
 
-func install(
+func preinstall(
 	t *testing.T, toolctlAPI api.ToolctlAPI, preinstalledTools []preinstalledTool,
 	preinstalledToolIsSymlinked bool, originalPathEnv string,
-) (tempInstallDir string, err error) {
-	tempInstallDir, err = ioutil.TempDir("", "toolctl-test-install-*")
+) (tmpPreinstallDir string, err error) {
+	tmpPreinstallDir, err = ioutil.TempDir("", "toolctl-test-preinstall-*")
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = os.Setenv("PATH", os.ExpandEnv(tempInstallDir+":$PATH"))
+	err = os.Setenv("PATH", os.ExpandEnv(tmpPreinstallDir+":$PATH"))
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	for _, preinstalledTool := range preinstalledTools {
 		err = os.WriteFile(
-			filepath.Join(tempInstallDir, preinstalledTool.name),
+			filepath.Join(tmpPreinstallDir, preinstalledTool.name),
 			[]byte(preinstalledTool.fileContents),
 			0755,
 		)
@@ -140,15 +141,15 @@ func install(
 
 	if preinstalledToolIsSymlinked {
 		err = os.Rename(
-			tempInstallDir+"/toolctl-test-tool",
-			tempInstallDir+"/symlinked-toolctl-test-tool",
+			tmpPreinstallDir+"/toolctl-test-tool",
+			tmpPreinstallDir+"/symlinked-toolctl-test-tool",
 		)
 		if err != nil {
 			t.Fatal(err)
 		}
 		err = os.Symlink(
-			tempInstallDir+"/symlinked-toolctl-test-tool",
-			tempInstallDir+"/toolctl-test-tool",
+			tmpPreinstallDir+"/symlinked-toolctl-test-tool",
+			tmpPreinstallDir+"/toolctl-test-tool",
 		)
 		if err != nil {
 			t.Fatal(err)

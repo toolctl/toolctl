@@ -251,7 +251,7 @@ Error: installation failed: Expected v0.1.0, but installed v0.2.0
 
 		var preinstalledTempInstallDir string
 		if !cmp.Equal(tt.preinstalledTools, []preinstalledTool{}) {
-			preinstalledTempInstallDir, err = install(
+			preinstalledTempInstallDir, err = preinstall(
 				t, toolctlAPI, tt.preinstalledTools, tt.preinstalledToolIsSymlinked,
 				originalPathEnv,
 			)

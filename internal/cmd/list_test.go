@@ -78,7 +78,7 @@ toolctl-another-test-tool
 
 		var preinstalledTempInstallDir string
 		if !cmp.Equal(tt.preinstalledTools, preinstalledTool{}) {
-			preinstalledTempInstallDir, err = install(
+			preinstalledTempInstallDir, err = preinstall(
 				t, toolctlAPI, tt.preinstalledTools, tt.preinstalledToolIsSymlinked,
 				originalPathEnv,
 			)
