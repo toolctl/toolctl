@@ -11,7 +11,7 @@
 
 ## How do I install `toolctl`?
 
-For now, please head to the [release page](https://github.com/toolctl/toolctl/releases) and download the latest version for your platform.
+For now, please [download the latest version](https://github.com/toolctl/toolctl/releases/latest) for your platform.
 
 In the not-too-distant future, we will also provide an easy-to-use setup script for `toolctl`.
 
