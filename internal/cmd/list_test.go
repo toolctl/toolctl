@@ -76,15 +76,11 @@ toolctl-another-test-tool
 			t.Fatalf("%s: SetupRemoteAPI() failed: %v", tt.name, err)
 		}
 
-		var preinstalledTempInstallDir string
-		if !cmp.Equal(tt.preinstalledTools, preinstalledTool{}) {
-			preinstalledTempInstallDir, err = preinstall(
-				t, toolctlAPI, tt.preinstalledTools, tt.preinstalledToolIsSymlinked,
-				originalPathEnv,
+		var preinstallTempDir string
+		if !cmp.Equal(tt.preinstalledTools, []preinstalledTool{}) {
+			preinstallTempDir = setupPreinstallTempDir(
+				t, tt, toolctlAPI, originalPathEnv,
 			)
-			if err != nil {
-				t.Fatal(err)
-			}
 		}
 
 		t.Run(tt.name, func(t *testing.T) {
@@ -108,8 +104,8 @@ toolctl-another-test-tool
 
 		os.Setenv("PATH", originalPathEnv)
 
-		if !cmp.Equal(tt.preinstalledTools, preinstalledTool{}) {
-			err = os.RemoveAll(preinstalledTempInstallDir)
+		if !cmp.Equal(tt.preinstalledTools, []preinstalledTool{}) {
+			err = os.RemoveAll(preinstallTempDir)
 			if err != nil {
 				t.Fatal(err)
 			}

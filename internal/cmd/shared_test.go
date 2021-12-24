@@ -16,6 +16,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/mholt/archiver/v3"
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 	"github.com/toolctl/toolctl/internal/api"
 	"github.com/toolctl/toolctl/internal/cmd"
 )
@@ -100,37 +101,37 @@ type supportedTool struct {
 }
 
 type test struct {
-	name                         string
-	installDirNotFound           bool
-	installDirNotInPath          bool
-	installDirNotWritable        bool
-	installDirNotPreinstalledDir bool
-	supportedTools               []supportedTool
-	preinstalledTools            []preinstalledTool
-	preinstalledToolIsSymlinked  bool
-	cliArgs                      []string
-	wantErr                      bool
-	wantOut                      string
-	wantOutRegex                 string
-	wantFiles                    []APIFile
+	name                        string
+	installDirNotFound          bool
+	installDirNotInPath         bool
+	installDirNotWritable       bool
+	installDirNotPreinstallDir  bool
+	supportedTools              []supportedTool
+	preinstalledTools           []preinstalledTool
+	preinstalledToolIsSymlinked bool
+	cliArgs                     []string
+	wantErr                     bool
+	wantOut                     string
+	wantOutRegex                string
+	wantFiles                   []APIFile
 }
 
-func preinstall(
-	t *testing.T, toolctlAPI api.ToolctlAPI, preinstalledTools []preinstalledTool,
-	preinstalledToolIsSymlinked bool, originalPathEnv string,
-) (tmpPreinstallDir string, err error) {
-	tmpPreinstallDir, err = ioutil.TempDir("", "toolctl-test-preinstall-*")
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = os.Setenv("PATH", os.ExpandEnv(tmpPreinstallDir+":$PATH"))
+func setupPreinstallTempDir(
+	t *testing.T, tt test, toolctlAPI api.ToolctlAPI, originalPathEnv string,
+) (preinstallTempDir string) {
+	preinstallTempDir, err := ioutil.TempDir("", "toolctl-test-install-*")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	for _, preinstalledTool := range preinstalledTools {
+	err = os.Setenv("PATH", os.ExpandEnv(preinstallTempDir+":$PATH"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	for _, preinstalledTool := range tt.preinstalledTools {
 		err = os.WriteFile(
-			filepath.Join(tmpPreinstallDir, preinstalledTool.name),
+			filepath.Join(preinstallTempDir, preinstalledTool.name),
 			[]byte(preinstalledTool.fileContents),
 			0755,
 		)
@@ -139,17 +140,17 @@ func preinstall(
 		}
 	}
 
-	if preinstalledToolIsSymlinked {
+	if tt.preinstalledToolIsSymlinked {
 		err = os.Rename(
-			tmpPreinstallDir+"/toolctl-test-tool",
-			tmpPreinstallDir+"/symlinked-toolctl-test-tool",
+			preinstallTempDir+"/toolctl-test-tool",
+			preinstallTempDir+"/symlinked-toolctl-test-tool",
 		)
 		if err != nil {
 			t.Fatal(err)
 		}
 		err = os.Symlink(
-			tmpPreinstallDir+"/symlinked-toolctl-test-tool",
-			tmpPreinstallDir+"/toolctl-test-tool",
+			preinstallTempDir+"/symlinked-toolctl-test-tool",
+			preinstallTempDir+"/toolctl-test-tool",
 		)
 		if err != nil {
 			t.Fatal(err)
@@ -378,13 +379,17 @@ echo "v0.2.0"
 		}
 	}
 
-	downloadFileServer := http.FileServer(afero.NewHttpFs(downloadServerFS).Dir("/"))
+	downloadFileServer := http.FileServer(
+		afero.NewHttpFs(downloadServerFS).Dir("/"),
+	)
 	downloadServer = httptest.NewServer(downloadFileServer)
 
 	return
 }
 
-func calculateSHA256(downloadFS afero.Fs, tarGzFilePath string) (sha256 string, err error) {
+func calculateSHA256(
+	downloadFS afero.Fs, tarGzFilePath string,
+) (sha256 string, err error) {
 	tarGzFile, err := downloadFS.Open(tarGzFilePath)
 	if err != nil {
 		return
@@ -417,7 +422,10 @@ func checkWantOut(t *testing.T, tt test, buf *bytes.Buffer) {
 			t.Errorf("Error compiling regex: %v", err)
 		}
 		if !matched {
-			t.Errorf("Error matching regex: %v, output: %s", tt.wantOutRegex, buf.String())
+			t.Errorf(
+				"Error matching regex: %v, output: %s",
+				tt.wantOutRegex, buf.String(),
+			)
 		}
 	}
 }
@@ -457,7 +465,9 @@ func supportedToolToDownloadFile(
 	return
 }
 
-func createTarGzFile(tarFilePath string, downloadServerFS afero.Fs) (tarGzFilePath string, err error) {
+func createTarGzFile(
+	tarFilePath string, downloadServerFS afero.Fs,
+) (tarGzFilePath string, err error) {
 	tarGzFilePath = tarFilePath + ".gz"
 
 	tarFileIn, err := downloadServerFS.Open(tarFilePath)
@@ -470,7 +480,9 @@ func createTarGzFile(tarFilePath string, downloadServerFS afero.Fs) (tarGzFilePa
 		return
 	}
 
-	tarGzFileOut, err := downloadServerFS.OpenFile(tarGzFile.Name(), os.O_WRONLY, 0644)
+	tarGzFileOut, err := downloadServerFS.OpenFile(
+		tarGzFile.Name(), os.O_WRONLY, 0644,
+	)
 	if err != nil {
 		return
 	}
@@ -490,7 +502,9 @@ func createTarFile(
 	}
 	defer tarFile.Close()
 
-	tarFileOut, err := downloadServerFS.OpenFile(tarFile.Name(), os.O_WRONLY, 0644)
+	tarFileOut, err := downloadServerFS.OpenFile(
+		tarFile.Name(), os.O_WRONLY, 0644,
+	)
 	if err != nil {
 		return
 	}
@@ -579,4 +593,100 @@ sha256: %s
 			),
 		},
 	}
+}
+
+func runInstallUpgradeTests(
+	t *testing.T, tests []test, installOrUpgrade string,
+) {
+	originalPathEnv := os.Getenv("PATH")
+
+	for _, tt := range tests {
+		toolctlAPI, apiServer, downloadServer, err := setupRemoteAPI(
+			tt.supportedTools,
+		)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		installTempDir, err := ioutil.TempDir("", "toolctl-test-install-*")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		var preinstallTempDir string
+		if !cmp.Equal(tt.preinstalledTools, []preinstalledTool{}) {
+			preinstallTempDir = setupPreinstallTempDir(
+				t, tt, toolctlAPI, originalPathEnv,
+			)
+		}
+
+		if !tt.installDirNotPreinstallDir && !tt.installDirNotInPath {
+			installTempDir = preinstallTempDir
+		} else {
+			installTempDir = setupInstallTempDir(t, tt)
+		}
+
+		if tt.installDirNotWritable {
+			err = os.Chmod(installTempDir, 0500)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		t.Run(tt.name, func(t *testing.T) {
+			buf := new(bytes.Buffer)
+
+			command := cmd.NewRootCmd(buf, toolctlAPI.GetLocalAPIFS())
+			command.SetArgs(append([]string{installOrUpgrade}, tt.cliArgs...))
+			viper.Set("RemoteAPIBaseURL", apiServer.URL)
+
+			var tmpInstallDirSuffix string
+			if tt.installDirNotFound {
+				tmpInstallDirSuffix = "-nonexistent"
+			}
+			viper.Set("InstallDir", installTempDir+tmpInstallDirSuffix)
+
+			// Redirect Cobra output to a buffer
+			command.SetOut(buf)
+			command.SetErr(buf)
+
+			err := command.Execute()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Error = %v, wantErr %v", err, tt.wantErr)
+			}
+
+			checkWantOut(t, tt, buf)
+		})
+
+		os.Setenv("PATH", originalPathEnv)
+
+		if !cmp.Equal(tt.preinstalledTools, []preinstalledTool{}) {
+			err = os.RemoveAll(preinstallTempDir)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		err = os.RemoveAll(installTempDir)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		apiServer.Close()
+		downloadServer.Close()
+	}
+}
+
+func setupInstallTempDir(t *testing.T, tt test) (installTempDir string) {
+	installTempDir, err := ioutil.TempDir("", "toolctl-test-install-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !tt.installDirNotInPath {
+		err = os.Setenv("PATH", os.ExpandEnv(installTempDir+":$PATH"))
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	return
 }
