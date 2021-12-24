@@ -93,6 +93,7 @@ Currently, `toolctl` supports the following tools:
 - kustomize
 - minikube
 - sops
+- toolctl
 - yq
 
 Our goal is to support as many tools as possible, so expect this list to grow significantly over time.
