@@ -95,6 +95,9 @@ func discover(
 
 	// Parse the URL template
 	funcMap := template.FuncMap{
+		"DefaultAMD64": func(in string) string {
+			return strings.Replace(in, "amd64", "", 1)
+		},
 		"Title": strings.Title,
 		"X86_64": func(in string) string {
 			return strings.Replace(in, "amd64", "x86_64", 1)
