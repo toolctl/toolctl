@@ -1,4 +1,4 @@
-# toolctl — controls your tools
+# toolctl: controls your tools
 
 <img src="https://user-images.githubusercontent.com/547220/146074557-339fc1e4-f83e-4cbb-b885-74cb6b52fd46.png" width="200px" alt="A drawing of a cute gopher holding a wrench">
 
@@ -11,19 +11,19 @@
 
 ## Installation
 
-### Automated
+### Automatic
 
 ```bash
 sudo /usr/bin/env bash -c "$(curl -fsSL https://raw.githubusercontent.com/toolctl/install/main/install)"
 ```
 
-### Manually
+### Manual
 
 You can [download the latest version of toolctl](https://github.com/toolctl/toolctl/releases/latest) and run it from any directory you like.
 
 ## Getting Started
 
-### Install the latest versions of a tool
+### Install the latest version of a tool
 
 ```text
 ❯ toolctl install k9s
