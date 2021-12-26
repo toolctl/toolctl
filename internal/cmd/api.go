@@ -15,6 +15,7 @@ func newAPICmd(toolctlWriter io.Writer, localAPIFS afero.Fs) *cobra.Command {
 	}
 
 	apiCmd.AddCommand(newDiscoverCmd(toolctlWriter, localAPIFS))
+	apiCmd.AddCommand(newSyncCmd(toolctlWriter, localAPIFS))
 
 	return apiCmd
 }

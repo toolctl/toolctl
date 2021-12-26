@@ -19,6 +19,7 @@ Usage:
 
 Available Commands:
   discover    Discover new versions of one or more tools
+  sync        Sync the list of supported tools
 
 Flags:
   -h, --help   help for api

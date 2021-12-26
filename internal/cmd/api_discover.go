@@ -221,7 +221,7 @@ func addNewVersion(
 		URL:    url,
 		SHA256: sha256,
 	}
-	err = api.SaveVersion(toolctlAPI, tool, toolPlatformVersionMeta)
+	err = api.SaveToolPlatformVersionMeta(toolctlAPI, tool, toolPlatformVersionMeta)
 	if err != nil {
 		return
 	}

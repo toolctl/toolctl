@@ -39,8 +39,8 @@ func TestNew(t *testing.T) {
 				defaultLocation: Remote,
 			},
 			want: &remoteAPI{
-				LocalAPIFS: testFS,
-				BaseURL:    baseURL,
+				localAPIFS: testFS,
+				baseURL:    baseURL,
 			},
 		},
 		{
@@ -59,8 +59,8 @@ func TestNew(t *testing.T) {
 				defaultLocation: Local,
 			},
 			want: &localAPI{
-				BasePath:   basePath,
-				LocalAPIFS: testFS,
+				basePath:   basePath,
+				localAPIFS: testFS,
 			},
 		},
 		{
@@ -72,8 +72,8 @@ func TestNew(t *testing.T) {
 				defaultLocation: Remote,
 			},
 			want: &localAPI{
-				BasePath:   basePath,
-				LocalAPIFS: testFS,
+				basePath:   basePath,
+				localAPIFS: testFS,
 			},
 		},
 		{

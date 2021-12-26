@@ -32,10 +32,10 @@ func Test_remoteAPI_GetLocalAPIFS(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			a := remoteAPI{
-				BaseURL:    tt.fields.BaseURL,
-				LocalAPIFS: tt.fields.LocalAPIFS,
+				baseURL:    tt.fields.BaseURL,
+				localAPIFS: tt.fields.LocalAPIFS,
 			}
-			if gotFs := a.GetLocalAPIFS(); !reflect.DeepEqual(gotFs, tt.wantFs) {
+			if gotFs := a.LocalAPIFS(); !reflect.DeepEqual(gotFs, tt.wantFs) {
 				t.Errorf("remoteAPI.GetLocalAPIFS() = %v, want %v", gotFs, tt.wantFs)
 			}
 		})
@@ -64,10 +64,10 @@ func Test_remoteAPI_GetLocation(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			a := remoteAPI{
-				BaseURL:    tt.fields.BaseURL,
-				LocalAPIFS: tt.fields.LocalAPIFS,
+				baseURL:    tt.fields.BaseURL,
+				localAPIFS: tt.fields.LocalAPIFS,
 			}
-			if got := a.GetLocation(); got != tt.want {
+			if got := a.Location(); got != tt.want {
 				t.Errorf("remoteAPI.GetLocation() = %v, want %v", got, tt.want)
 			}
 		})

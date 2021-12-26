@@ -3,17 +3,149 @@ package api_test
 import (
 	"errors"
 	"path"
+	"path/filepath"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/toolctl/toolctl/internal/api"
 )
 
+func TestGetMeta(t *testing.T) {
+	type args struct {
+		// toolctlAPI is created for each test case
+	}
+
+	tests := []struct {
+		name        string
+		apiContents apiContents
+		args        args
+		want        api.Meta
+		wantErr     error
+	}{
+		{
+			name: "should work",
+			apiContents: []apiFile{
+				{
+					Path: filepath.Join(localAPIBasePath, "meta.yaml"),
+					Contents: `tools:
+- toolctl-test-tool
+- toolctl-other-test-tool
+`,
+				},
+			},
+			want: api.Meta{
+				Tools: []string{
+					"toolctl-test-tool",
+					"toolctl-other-test-tool",
+				},
+			},
+		},
+		{
+			name:    "should fail if meta.yaml is missing",
+			wantErr: api.NotFoundError{},
+		},
+	}
+
+	for _, tt := range tests {
+		for _, apiLocation := range []api.Location{api.Remote, api.Local} {
+			toolctlAPI, apiServer, err := setupTest(apiLocation, tt.apiContents)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			t.Run(tt.name, func(t *testing.T) {
+				got, err := api.GetMeta(toolctlAPI)
+				if !errors.Is(err, tt.wantErr) {
+					t.Errorf("GetMeta() error = %v, wantErr %v", err, tt.wantErr)
+				}
+				if !cmp.Equal(got, tt.want) {
+					t.Errorf("GetMeta() = %v, want %v", got, tt.want)
+				}
+			})
+
+			if apiLocation == api.Remote {
+				apiServer.Close()
+			}
+		}
+	}
+}
+
+func TestSaveMeta(t *testing.T) {
+	type args struct {
+		// toolctlAPI is created for each test case
+		meta api.Meta
+	}
+	tests := []struct {
+		name            string
+		apiLocation     api.Location
+		args            args
+		wantAPIContents apiContents
+		wantErrStr      string
+	}{
+		{
+			name:        "save with local API",
+			apiLocation: api.Local,
+			args: args{
+				meta: api.Meta{
+					Tools: []string{
+						"toolctl-test-tool",
+						"toolctl-other-test-tool",
+					},
+				},
+			},
+			wantAPIContents: apiContents{
+				{
+					Path: path.Join(localAPIBasePath, "meta.yaml"),
+					Contents: `tools:
+  - toolctl-test-tool
+  - toolctl-other-test-tool
+`,
+				},
+			},
+		},
+		{
+			name:        "save with remote API",
+			apiLocation: api.Remote,
+			args: args{
+				meta: api.Meta{
+					Tools: []string{
+						"toolctl-test-tool",
+					},
+				},
+			},
+			wantErrStr: "not implemented",
+		},
+	}
+	for _, tt := range tests {
+		toolctlAPI, apiServer, err := setupTest(tt.apiLocation, apiContents{})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		t.Run(tt.name, func(t *testing.T) {
+			err := api.SaveMeta(toolctlAPI, tt.args.meta)
+			if (err == nil) != (tt.wantErrStr == "") {
+				t.Errorf("SavePlatformMeta() error = %v, wantErr = %v", err, tt.wantErrStr)
+			}
+			if err != nil && tt.wantErrStr != "" {
+				if err.Error() != tt.wantErrStr {
+					t.Errorf("SavePlatformMeta() error = %v, wantErr = %v", err, tt.wantErrStr)
+				}
+			}
+		})
+
+		if tt.apiLocation == api.Remote {
+			apiServer.Close()
+		}
+	}
+}
+
 func TestGetToolMeta(t *testing.T) {
 	type args struct {
 		// toolctlAPI is created for each test case
 		tool api.Tool
 	}
+
 	tests := []struct {
 		name        string
 		apiContents apiContents
@@ -25,7 +157,7 @@ func TestGetToolMeta(t *testing.T) {
 			name: "supported tool",
 			apiContents: apiContents{
 				apiFile{
-					Path:     localAPIBasePath + "/toolctl-test-tool/meta.yaml",
+					Path:     filepath.Join(localAPIBasePath, "toolctl-test-tool/meta.yaml"),
 					Contents: "downloadURLTemplate: https://localhost/{{.OS}}/{{.Arch}}/{{.Version}}/{{.ToolName}}",
 				},
 			},
@@ -55,6 +187,7 @@ func TestGetToolMeta(t *testing.T) {
 			wantErr: api.NotFoundError{},
 		},
 	}
+
 	for _, tt := range tests {
 		for _, apiLocation := range []api.Location{api.Remote, api.Local} {
 			toolctlAPI, apiServer, err := setupTest(apiLocation, tt.apiContents)
@@ -81,7 +214,7 @@ func TestGetToolMeta(t *testing.T) {
 
 func TestGetToolPlatformMeta(t *testing.T) {
 	type args struct {
-		// api is created for each test case
+		// toolctlAPI is created for each test case
 		tool api.Tool
 	}
 	tests := []struct {
@@ -157,7 +290,7 @@ func TestGetToolPlatformMeta(t *testing.T) {
 
 func TestSaveToolPlatformMeta(t *testing.T) {
 	type args struct {
-		// api is created for each test case
+		// toolctlAPI is created for each test case
 		tool api.Tool
 		meta api.ToolPlatformMeta
 	}
@@ -238,7 +371,7 @@ latest: 1.3.2
 
 func TestGetToolPlatformVersionMeta(t *testing.T) {
 	type args struct {
-		// api is created for each test case
+		// toolctlAPI is created for each test case
 		tool api.Tool
 	}
 	tests := []struct {
@@ -322,6 +455,59 @@ sha256: cb3174cf3910a0d711a61059363aad6a30b7dcc1125be8027f20907a6612bf24
 			if apiLocation == api.Remote {
 				apiServer.Close()
 			}
+		}
+	}
+}
+
+func TestSaveToolPlatformVersionMeta(t *testing.T) {
+	type args struct {
+		// toolctlAPI is created for each test case
+		tool api.Tool
+		meta api.ToolPlatformVersionMeta
+	}
+
+	tests := []struct {
+		name        string
+		apiLocation api.Location
+		args        args
+		wantErr     bool
+	}{
+		{
+			name:        "local",
+			apiLocation: api.Local,
+			args: args{
+				tool: api.Tool{
+					Name: "toolctl-test-tool",
+					OS:   "darwin",
+					Arch: "amd64",
+				},
+				meta: api.ToolPlatformVersionMeta{
+					URL:    "http://localhost/toolctl-test-tool/darwin-amd64/toolctl-test-tool-1.0.0.tar.gz",
+					SHA256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+				},
+			},
+		},
+		{
+			name:        "remote",
+			apiLocation: api.Remote,
+			wantErr:     true,
+		},
+	}
+
+	for _, tt := range tests {
+		toolctlAPI, apiServer, err := setupTest(tt.apiLocation, apiContents{})
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		t.Run(tt.name, func(t *testing.T) {
+			if err := api.SaveToolPlatformVersionMeta(toolctlAPI, tt.args.tool, tt.args.meta); (err != nil) != tt.wantErr {
+				t.Errorf("SaveVersion() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+
+		if tt.apiLocation == api.Remote {
+			apiServer.Close()
 		}
 	}
 }
