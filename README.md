@@ -95,6 +95,7 @@ Currently, `toolctl` supports the following tools:
 - kustomize
 - minikube
 - sops
+- stern
 - toolctl
 - yq
 
