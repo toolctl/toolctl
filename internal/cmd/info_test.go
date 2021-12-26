@@ -162,7 +162,7 @@ $`,
 		t.Run(tt.name, func(t *testing.T) {
 			buf := new(bytes.Buffer)
 
-			command := cmd.NewRootCmd(buf, toolctlAPI.GetLocalAPIFS())
+			command := cmd.NewRootCmd(buf, toolctlAPI.LocalAPIFS())
 			command.SetArgs(append([]string{"info"}, tt.cliArgs...))
 			viper.Set("RemoteAPIBaseURL", apiServer.URL)
 

@@ -27,7 +27,24 @@ func GetMeta(toolctlAPI ToolctlAPI) (meta Meta, err error) {
 	}
 
 	err = yaml.Unmarshal(metaBytes, &meta)
+	return
+}
 
+// SaveMeta saves the metadata for the toolctl API.
+func SaveMeta(toolctlAPI ToolctlAPI, meta Meta) (err error) {
+	yamlBuffer := &bytes.Buffer{}
+	yamlEncoder := yaml.NewEncoder(yamlBuffer)
+	yamlEncoder.SetIndent(2)
+	err = yamlEncoder.Encode(meta)
+	if err != nil {
+		return
+	}
+	err = yamlEncoder.Close()
+	if err != nil {
+		return
+	}
+
+	err = toolctlAPI.SaveContents("meta.yaml", yamlBuffer.Bytes())
 	return
 }
 
@@ -53,7 +70,6 @@ func GetToolMeta(toolctlAPI ToolctlAPI, tool Tool) (meta ToolMeta, err error) {
 	}
 
 	err = yaml.Unmarshal(metaBytes, &meta)
-
 	return
 }
 
@@ -80,6 +96,7 @@ func GetToolPlatformMeta(toolctlAPI ToolctlAPI, tool Tool) (meta ToolPlatformMet
 		err = fmt.Errorf("%s %w", tool.Name, NotFoundError{})
 		return
 	}
+
 	err = yaml.Unmarshal([]byte(metaBytes), &meta)
 	return
 }
@@ -102,10 +119,6 @@ func SaveToolPlatformMeta(toolctlAPI ToolctlAPI, tool Tool, meta ToolPlatformMet
 		filepath.Join(tool.Name, tool.OS+"-"+tool.Arch, "meta.yaml"),
 		yamlBuffer.Bytes(),
 	)
-	if err != nil {
-		return
-	}
-
 	return
 }
 
@@ -127,6 +140,28 @@ func GetToolPlatformVersionMeta(toolctlAPI ToolctlAPI, tool Tool) (meta ToolPlat
 		err = fmt.Errorf("%s v%s %w", tool.Name, tool.Version, NotFoundError{})
 		return
 	}
+
 	err = yaml.Unmarshal([]byte(metaBytes), &meta)
+	return
+}
+
+// SaveToolPlatformVersionMeta saves version metadata for a tool to the API.
+func SaveToolPlatformVersionMeta(toolctlAPI ToolctlAPI, tool Tool, meta ToolPlatformVersionMeta) (err error) {
+	yamlBuffer := &bytes.Buffer{}
+	yamlEncoder := yaml.NewEncoder(yamlBuffer)
+	yamlEncoder.SetIndent(2)
+	err = yamlEncoder.Encode(meta)
+	if err != nil {
+		return
+	}
+	err = yamlEncoder.Close()
+	if err != nil {
+		return
+	}
+
+	err = toolctlAPI.SaveContents(
+		filepath.Join(tool.Name, tool.OS+"-"+tool.Arch, tool.Version+".yaml"),
+		yamlBuffer.Bytes(),
+	)
 	return
 }

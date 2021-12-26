@@ -18,10 +18,11 @@ const (
 
 // ToolctlAPI defines the interface that all toolctl APIs need to implement.
 type ToolctlAPI interface {
-	GetContents(path string) (found bool, contents []byte, err error)
-	GetLocalAPIFS() afero.Fs
-	GetLocation() Location
+	LocalAPIBasePath() string
+	LocalAPIFS() afero.Fs
+	Location() Location
 
+	GetContents(path string) (found bool, contents []byte, err error)
 	SaveContents(path string, data []byte) error
 }
 

@@ -10,13 +10,13 @@ import (
 )
 
 type remoteAPI struct {
-	BaseURL    *url.URL
-	LocalAPIFS afero.Fs
+	baseURL    *url.URL
+	localAPIFS afero.Fs
 }
 
 func (a remoteAPI) GetContents(path string) (found bool, contents []byte, err error) {
 	var resp *http.Response
-	resp, err = http.Get(a.BaseURL.ResolveReference(&url.URL{Path: path}).String())
+	resp, err = http.Get(a.baseURL.ResolveReference(&url.URL{Path: path}).String())
 	if err != nil {
 		return
 	}
@@ -35,16 +35,19 @@ func (a remoteAPI) GetContents(path string) (found bool, contents []byte, err er
 	return
 }
 
-// GetLocalFS returns the underlying local filesystem.
-func (a remoteAPI) GetLocalAPIFS() (fs afero.Fs) {
-	return a.LocalAPIFS
+func (a remoteAPI) LocalAPIBasePath() string {
+	return ""
 }
 
-func (a remoteAPI) GetLocation() Location {
+func (a remoteAPI) LocalAPIFS() (fs afero.Fs) {
+	return a.localAPIFS
+}
+
+func (a remoteAPI) Location() Location {
 	return Remote
 }
 
-// The remote API is currently read-only.
+// SaveContents is currently not supported by the remote API.
 func (a remoteAPI) SaveContents(path string, contents []byte) (err error) {
 	return fmt.Errorf("not implemented")
 }
@@ -58,7 +61,7 @@ func NewRemoteAPI(localFS afero.Fs, remoteAPIBaseURL string) (ToolctlAPI, error)
 	}
 
 	return &remoteAPI{
-		LocalAPIFS: localFS,
-		BaseURL:    baseURL,
+		localAPIFS: localFS,
+		baseURL:    baseURL,
 	}, nil
 }
