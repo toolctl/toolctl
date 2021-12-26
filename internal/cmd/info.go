@@ -140,7 +140,7 @@ func installPrintInstalledVersion(
 	tool api.Tool, allTools []api.Tool, latestVersion *semver.Version,
 ) (err error) {
 	var installedVersion *semver.Version
-	installedVersion, err = getInstalledVersion(
+	installedVersion, err = getToolBinaryVersion(
 		installedToolPath, toolMeta.VersionArgs,
 	)
 	if err != nil {

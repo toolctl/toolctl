@@ -5,11 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
+	"os"
 	"os/exec"
+	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 
 	"github.com/Masterminds/semver"
+	"github.com/mholt/archiver/v3"
 	"github.com/spf13/cobra"
 	"github.com/toolctl/toolctl/internal/api"
 )
@@ -69,8 +74,81 @@ func checkArgs() cobra.PositionalArgs {
 	}
 }
 
-// getLatestVersion returns the version of an installed tool.
-func getInstalledVersion(
+// downloadURL downloads the specified URL to the specified directory.
+func downloadURL(url string, dir string) (
+	downloadedFilePath string, sha256 string, err error,
+) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		err = fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		return
+	}
+
+	downloadedFilePath = filepath.Join(dir, path.Base(url))
+
+	// Create the file
+	downloadedFile, err := os.Create(downloadedFilePath)
+	if err != nil {
+		return
+	}
+	_, err = io.Copy(downloadedFile, resp.Body)
+	if err != nil {
+		return
+	}
+	err = downloadedFile.Close()
+	if err != nil {
+		return
+	}
+
+	// Calculate the SHA256 hash
+	downloadedFile, err = os.Open(downloadedFilePath)
+	if err != nil {
+		return
+	}
+	sha256, err = CalculateSHA256(downloadedFile)
+	if err != nil {
+		return
+	}
+	err = downloadedFile.Close()
+
+	return
+}
+
+// extractDownloadedTool extracts the downloaded tool.
+func extractDownloadedTool(tool api.Tool, downloadedToolPath string) (
+	extractedToolPath string, err error,
+) {
+	dir := filepath.Dir(downloadedToolPath)
+
+	// Extract the tool if it's a .tar.gz file
+	if strings.HasSuffix(downloadedToolPath, ".tar.gz") {
+		// Extract the downloaded file
+		err = archiver.Unarchive(downloadedToolPath, dir)
+		if err != nil {
+			return
+		}
+		// Locate the extracted binary
+		extractedToolPath, err = locateExtractedBinary(dir, tool)
+		if err != nil {
+			return
+		}
+	} else {
+		extractedToolPath = downloadedToolPath
+	}
+
+	// Make sure the binary is executable
+	err = os.Chmod(extractedToolPath, 0755)
+
+	return
+}
+
+// getToolBinaryVersion returns the version of the tool binary.
+func getToolBinaryVersion(
 	toolPath string, versionArgs []string,
 ) (version *semver.Version, err error) {
 	versionRegex := `(\d+\.\d+\.\d+)`
@@ -91,9 +169,11 @@ func getInstalledVersion(
 		return
 	}
 
-	match := r.FindStringSubmatch(string(out))
+	rawVersion := strings.TrimSpace(string(out))
+
+	match := r.FindStringSubmatch(rawVersion)
 	if len(match) < 2 {
-		err = fmt.Errorf("could not find version in output: %s", string(out))
+		err = fmt.Errorf("could not find version in output: %s", rawVersion)
 		return
 	}
 
