@@ -48,7 +48,7 @@ func newRunUpgrade(
 			)
 		}
 
-		installDir, err := checkInstallDir(toolctlWriter, allTools)
+		installDir, err := checkInstallDir(toolctlWriter, allTools, "upgrade")
 		if err != nil {
 			return
 		}

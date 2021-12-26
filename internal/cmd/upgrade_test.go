@@ -1,14 +1,7 @@
 package cmd_test
 
 import (
-	"bytes"
-	"io/ioutil"
-	"os"
 	"testing"
-
-	"github.com/google/go-cmp/cmp"
-	"github.com/spf13/viper"
-	"github.com/toolctl/toolctl/internal/cmd"
 )
 
 func TestUpgradeCmd(t *testing.T) {
@@ -38,6 +31,7 @@ Global Flags:
 			wantOut: `Error: no tool specified
 ` + usage,
 		},
+		// -------------------------------------------------------------------------
 		{
 			name: "supported tool",
 			preinstalledTools: []preinstalledTool{
@@ -55,6 +49,7 @@ echo "v0.1.0"
 🎉 Successfully installed
 `,
 		},
+		// -------------------------------------------------------------------------
 		{
 			name:    "supported tool with version",
 			cliArgs: []string{"toolctl-test-tool@0.1.0"},
@@ -63,6 +58,7 @@ echo "v0.1.0"
   toolctl upgrade toolctl-test-tool
 `,
 		},
+		// -------------------------------------------------------------------------
 		{
 			name: "multiple supported tools",
 			preinstalledTools: []preinstalledTool{
@@ -81,6 +77,7 @@ echo "v0.1.0"
 [toolctl-test-tool] ✅ already up-to-date
 `,
 		},
+		// -------------------------------------------------------------------------
 		{
 			name: "supported tool, latest version already installed",
 			preinstalledTools: []preinstalledTool{
@@ -95,6 +92,7 @@ echo "v0.1.1"
 			wantOut: `✅ already up-to-date
 `,
 		},
+		// -------------------------------------------------------------------------
 		{
 			name:    "supported tool, not installed",
 			cliArgs: []string{"toolctl-test-tool"},
@@ -102,6 +100,7 @@ echo "v0.1.1"
 			wantOut: `Error: toolctl-test-tool is not installed
 `,
 		},
+		// -------------------------------------------------------------------------
 		{
 			name: "supported tool, symlinked",
 			preinstalledTools: []preinstalledTool{
@@ -118,9 +117,20 @@ echo "v0.1.0"
 			wantOutRegex: `Error: aborting: .+ is symlinked from .+
 $`,
 		},
+		// -------------------------------------------------------------------------
 		{
-			name:                         "supported tool, installed not in install dir",
-			installDirNotPreinstalledDir: true,
+			name:                  "install dir not writable",
+			cliArgs:               []string{"a-tool", "another-tool"},
+			installDirNotWritable: true,
+			wantErr:               true,
+			wantOutRegex: `^Error: .+toolctl-test-install-\d+ is not writable by user .+, try running:
+  sudo toolctl upgrade a-tool another-tool
+$`,
+		},
+		// -------------------------------------------------------------------------
+		{
+			name:                       "supported tool, installed not in install dir",
+			installDirNotPreinstallDir: true,
 			preinstalledTools: []preinstalledTool{
 				{
 					name: "toolctl-test-tool",
@@ -135,6 +145,7 @@ echo "v0.1.0"
 			wantOutRegex: `Error: aborting: toolctl-test-tool is currently installed in .+, not in .+
 $`,
 		},
+		// -------------------------------------------------------------------------
 		{
 			name:    "unsupported tool",
 			cliArgs: []string{"toolctl-unsupported-test-tool"},
@@ -142,6 +153,7 @@ $`,
 			wantOut: `Error: toolctl-unsupported-test-tool could not be found
 `,
 		},
+		// -------------------------------------------------------------------------
 		{
 			name:    "unsupported tool with version",
 			cliArgs: []string{"toolctl-unsupported-test-tool@1.0.0"},
@@ -152,83 +164,5 @@ $`,
 		},
 	}
 
-	originalPathEnv := os.Getenv("PATH")
-
-	for _, tt := range tests {
-		toolctlAPI, apiServer, downloadServer, err := setupRemoteAPI(tt.supportedTools)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		var tmpPreinstallDir string
-		if !cmp.Equal(tt.preinstalledTools, preinstalledTool{}) {
-			tmpPreinstallDir, err = preinstall(
-				t, toolctlAPI, tt.preinstalledTools, tt.preinstalledToolIsSymlinked,
-				originalPathEnv,
-			)
-			if err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		var tmpInstallDir string
-		if !tt.installDirNotPreinstalledDir {
-			tmpInstallDir = tmpPreinstallDir
-		} else {
-			tmpInstallDir, err = ioutil.TempDir("", "toolctl-test-install-*")
-			if err != nil {
-				t.Fatal(err)
-			}
-			err = os.Setenv("PATH", os.ExpandEnv(tmpInstallDir+":$PATH"))
-			if err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		t.Run(tt.name, func(t *testing.T) {
-			buf := new(bytes.Buffer)
-
-			command := cmd.NewRootCmd(buf, toolctlAPI.GetLocalAPIFS())
-			command.SetArgs(append([]string{"upgrade"}, tt.cliArgs...))
-			viper.Set("RemoteAPIBaseURL", apiServer.URL)
-
-			var tmpInstallDirSuffix string
-			if tt.installDirNotFound {
-				tmpInstallDirSuffix = "-nonexistent"
-			}
-			viper.Set("InstallDir", tmpInstallDir+tmpInstallDirSuffix)
-
-			if !tt.installDirNotInPath {
-				os.Setenv("PATH", os.ExpandEnv(tmpInstallDir+":$PATH"))
-			}
-
-			// Redirect Cobra output
-			command.SetOut(buf)
-			command.SetErr(buf)
-
-			err := command.Execute()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Error = %v, wantErr %v", err, tt.wantErr)
-			}
-
-			checkWantOut(t, tt, buf)
-		})
-
-		os.Setenv("PATH", originalPathEnv)
-
-		err = os.RemoveAll(tmpInstallDir)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if !cmp.Equal(tt.preinstalledTools, preinstalledTool{}) {
-			err = os.RemoveAll(tmpPreinstallDir)
-			if err != nil {
-				t.Fatal(err)
-			}
-		}
-
-		apiServer.Close()
-		downloadServer.Close()
-	}
+	runInstallUpgradeTests(t, tests, "upgrade")
 }
