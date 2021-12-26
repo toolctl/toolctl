@@ -83,6 +83,8 @@ You can [download the latest version of toolctl](https://github.com/toolctl/tool
 Currently, `toolctl` supports the following tools:
 
 - age
+- dive
+- gh
 - helm
 - k9s
 - kubectl
