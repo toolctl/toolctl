@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"io/ioutil"
 	"net/http"
+	"os"
+	"runtime"
 	"strings"
 	"time"
 
@@ -98,6 +101,9 @@ func discover(
 		"DefaultAMD64": func(in string) string {
 			return strings.Replace(in, "amd64", "", 1)
 		},
+		"MacOS": func(in string) string {
+			return strings.Replace(in, "darwin", "macOS", 1)
+		},
 		"Title": strings.Title,
 		"X86_64": func(in string) string {
 			return strings.Replace(in, "amd64", "x86_64", 1)
@@ -109,13 +115,16 @@ func discover(
 	}
 
 	tool.Version = version.String()
-	err = discoverLoop(toolctlWriter, toolctlAPI, tool, downloadURLTemplate)
+	err = discoverLoop(
+		toolctlWriter, toolctlAPI, toolMeta, tool, downloadURLTemplate,
+	)
+
 	return
 }
 
 func discoverLoop(
-	toolctlWriter io.Writer, toolctlAPI api.ToolctlAPI, tool api.Tool,
-	downloadURLTemplate *template.Template,
+	toolctlWriter io.Writer, toolctlAPI api.ToolctlAPI, toolMeta api.ToolMeta,
+	tool api.Tool, downloadURLTemplate *template.Template,
 ) (err error) {
 	var (
 		componentToIncrement = "patch"
@@ -155,7 +164,7 @@ func discoverLoop(
 			}
 
 			if statusCode == http.StatusOK {
-				err = addNewVersion(toolctlWriter, toolctlAPI, tool, url)
+				err = addNewVersion(toolctlWriter, toolctlAPI, toolMeta, tool, url)
 				if err != nil {
 					return
 				}
@@ -200,20 +209,46 @@ func discoverLoop(
 
 // addNewVersion adds a new version of a tool to the local API.
 func addNewVersion(
-	toolctlWriter io.Writer, toolctlAPI api.ToolctlAPI, tool api.Tool, url string,
+	toolctlWriter io.Writer, toolctlAPI api.ToolctlAPI, toolMeta api.ToolMeta,
+	tool api.Tool, url string,
 ) (err error) {
-	var resp *http.Response
-	resp, err = http.Get(url)
+	tempDir, err := ioutil.TempDir("", "toolctl-*")
 	if err != nil {
 		return
 	}
-	defer resp.Body.Close()
+	defer os.RemoveAll(tempDir)
 
-	var sha256 string
-	sha256, err = CalculateSHA256(resp.Body)
+	downloadedToolPath, sha256, err := downloadURL(url, tempDir)
 	if err != nil {
 		return
 	}
+
+	// Check the version, if we can run the tool binary
+	if tool.OS == runtime.GOOS && tool.Arch == runtime.GOARCH {
+		// Extract the downloaded tool
+		var extractedToolPath string
+		extractedToolPath, err = extractDownloadedTool(tool, downloadedToolPath)
+		if err != nil {
+			return
+		}
+
+		// Check the version
+		var toolBinaryVersion *semver.Version
+		toolBinaryVersion, err = getToolBinaryVersion(
+			extractedToolPath, toolMeta.VersionArgs,
+		)
+		if err != nil {
+			return
+		}
+		if !toolBinaryVersion.Equal(semver.MustParse(tool.Version)) {
+			err = fmt.Errorf(
+				"version mismatch: expected %s, got %s",
+				tool.Version, toolBinaryVersion,
+			)
+			return
+		}
+	}
+
 	fmt.Fprintln(toolctlWriter, "SHA256:", sha256)
 
 	// Save the tool platform version metadata

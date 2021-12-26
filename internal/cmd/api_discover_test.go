@@ -39,6 +39,7 @@ Global Flags:
 
 `,
 		},
+		// -------------------------------------------------------------------------
 		{
 			name:    "supported tool",
 			cliArgs: []string{"toolctl-test-tool"},
@@ -141,6 +142,7 @@ HTTP status: 404
 				},
 			},
 		},
+		// -------------------------------------------------------------------------
 		{
 			name:    "supported tool with version",
 			cliArgs: []string{"toolctl-test-tool@0.1.0"},
@@ -247,6 +249,7 @@ HTTP status: 404
 				},
 			},
 		},
+		// -------------------------------------------------------------------------
 		{
 			name:    "unsupported tool",
 			cliArgs: []string{"toolctl-unsupported-test-tool"},

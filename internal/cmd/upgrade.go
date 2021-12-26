@@ -106,7 +106,7 @@ func upgrade(
 	if err != nil {
 		return
 	}
-	installedVersion, err := getInstalledVersion(
+	installedVersion, err := getToolBinaryVersion(
 		installedToolPath, toolMeta.VersionArgs,
 	)
 

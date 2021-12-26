@@ -6,17 +6,14 @@ import (
 	"io"
 	"io/fs"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"os/exec"
 	"os/user"
-	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
 
 	"github.com/Masterminds/semver"
-	"github.com/mholt/archiver/v3"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/toolctl/toolctl/internal/api"
@@ -162,48 +159,32 @@ func install(
 		),
 	)
 
-	// Download the tool to a temporary directory
-	tempDir, err := ioutil.TempDir("", "toolctl-install-*")
+	// Download the tool
+	tempDir, err := ioutil.TempDir("", "toolctl-*")
 	if err != nil {
 		return
 	}
 	defer os.RemoveAll(tempDir)
-	downloadedFilePath, err := downloadTool(tempDir, toolctlAPI, tool)
+
+	downloadedToolPath, err := downloadTool(toolctlAPI, tool, tempDir)
 	if err != nil {
 		return
 	}
 
-	// Extract the tool if it's a .tar.gz file
-	var extractedBinaryPath string
-	if strings.HasSuffix(downloadedFilePath, ".tar.gz") {
-		// Extract the downloaded file to a temporary directory
-		err = archiver.Unarchive(downloadedFilePath, tempDir)
-		if err != nil {
-			return
-		}
-		// Locate the extracted binary
-		extractedBinaryPath, err = locateExtractedBinary(tempDir, tool)
-		if err != nil {
-			return
-		}
-	} else {
-		extractedBinaryPath = downloadedFilePath
-	}
-
-	// Make the binary executable
-	err = os.Chmod(extractedBinaryPath, 0755)
+	// Extract the tool
+	extractedToolPath, err := extractDownloadedTool(tool, downloadedToolPath)
 	if err != nil {
 		return
 	}
 
-	// Install the binary
+	// Install the tool
 	installPath := filepath.Join(installDir, tool.Name)
-	err = os.Rename(extractedBinaryPath, installPath)
+	err = os.Rename(extractedToolPath, installPath)
 	if err != nil {
 		return
 	}
 
-	installedVersion, err := getInstalledVersion(
+	installedVersion, err := getToolBinaryVersion(
 		installPath, toolMeta.VersionArgs,
 	)
 	if err != nil {
@@ -231,7 +212,7 @@ func infoPrintInstalledVersion(
 	tool api.Tool, allTools []api.Tool, latestVersion *semver.Version,
 ) (err error) {
 	var installedVersion *semver.Version
-	installedVersion, err = getInstalledVersion(
+	installedVersion, err = getToolBinaryVersion(
 		installedToolPath, toolMeta.VersionArgs,
 	)
 	if err != nil {
@@ -320,52 +301,29 @@ func locateExtractedBinary(dir string, tool api.Tool) (
 	return
 }
 
-// downloadTool gets the download URL for the specified tool and downloads it
-// to the specified path.
-func downloadTool(dir string, toolctlAPI api.ToolctlAPI, tool api.Tool) (filePath string, err error) {
+// downloadTool gets the download URL for the specified tool and
+// downloads it to the specified directory.
+func downloadTool(
+	toolctlAPI api.ToolctlAPI, tool api.Tool, dir string,
+) (downloadedToolPath string, err error) {
 	meta, err := api.GetToolPlatformVersionMeta(toolctlAPI, tool)
 	if err != nil {
 		return
 	}
-	expectedSHA256 := meta.SHA256
 
-	resp, err := http.Get(meta.URL)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		err = fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-		return
-	}
-
-	// Create the file
-	out, err := os.Create(filepath.Join(dir, path.Base(meta.URL)))
-	if err != nil {
-		return
-	}
-	defer out.Close()
-
-	// Write the body to file
-	_, err = io.Copy(out, resp.Body)
-
-	// Check the SHA256 hash
-	downloadedFile, err := os.Open(out.Name())
-	if err != nil {
-		return
-	}
-	calculatedSHA256, err := CalculateSHA256(downloadedFile)
+	var sha256 string
+	downloadedToolPath, sha256, err = downloadURL(meta.URL, dir)
 	if err != nil {
 		return
 	}
 
-	if calculatedSHA256 != expectedSHA256 {
-		err = fmt.Errorf("SHA256 hash mismatch, wanted %s, got %s", expectedSHA256, calculatedSHA256)
+	if sha256 != meta.SHA256 {
+		err = fmt.Errorf(
+			"SHA256 hash mismatch, wanted %s, got %s",
+			meta.SHA256, sha256,
+		)
 		return
 	}
-
-	filePath = out.Name()
 
 	return
 }
