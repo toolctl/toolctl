@@ -13,8 +13,8 @@
 
 ### Automatic
 
-```bash
-sudo /usr/bin/env bash -c "$(curl -fsSL https://raw.githubusercontent.com/toolctl/install/main/install)"
+```shell
+sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/toolctl/install/main/install)"
 ```
 
 ### Manual
