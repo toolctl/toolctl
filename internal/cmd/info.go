@@ -19,14 +19,17 @@ import (
 
 func newInfoCmd(toolctlWriter io.Writer, localAPIFS afero.Fs) *cobra.Command {
 	var infoCmd = &cobra.Command{
-		Use:   "info TOOL...",
-		Short: "Information about one or more tools",
-		Args:  checkArgs(false),
-		Example: `  # Get information about a tool
+		Use:   "info [TOOL...]",
+		Short: "Get information about tools",
+		Args:  checkArgs(true),
+		Example: `  # Get information about installed tools
+  toolctl info
+
+  # Get information about a specific tool
   toolctl info kubectl
 
   # Get information about multiple tools
-  toolctl info k9s kustomize`,
+  toolctl info gh k9s`,
 		RunE: newRunInfo(toolctlWriter, localAPIFS),
 	}
 	return infoCmd
@@ -39,6 +42,36 @@ func newRunInfo(
 		toolctlAPI, err := api.New(localAPIFS, cmd, api.Remote)
 		if err != nil {
 			return err
+		}
+
+		// If no args were specified, upgrade all installed tools
+		if len(args) == 0 {
+			// Get the list of all tools
+			var meta api.Meta
+			meta, err = api.GetMeta(toolctlAPI)
+			if err != nil {
+				return
+			}
+
+			// Check which tools are installed
+			var installedToolNames []string
+			for _, toolName := range meta.Tools {
+				var installed bool
+				installed, err = isToolInstalled(toolName)
+				if err != nil {
+					return
+				}
+				if installed {
+					installedToolNames = append(installedToolNames, toolName)
+				}
+			}
+
+			if len(installedToolNames) == 0 {
+				err = fmt.Errorf("no supported tools installed")
+				return
+			}
+
+			args = installedToolNames
 		}
 
 		allTools, err := ArgsToTools(args, runtime.GOOS, runtime.GOARCH, false)

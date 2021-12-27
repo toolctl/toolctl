@@ -17,11 +17,14 @@ func NewRootCmd(toolctlWriter io.Writer, localAPIFS afero.Fs) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "toolctl",
 		Short: "toolctl controls your tools",
-		Example: `  # Get information about a tool
-  toolctl info kubectl
+		Example: `  # Get information about installed tools
+  toolctl info
 
-  # Install a tool
-  toolctl install minikube`,
+  # Install tools
+  toolctl install minikube k9s
+
+  # Upgrade supported tools
+  toolctl upgrade`,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			cmd.SilenceUsage = true
 		},

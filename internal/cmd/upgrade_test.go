@@ -6,30 +6,54 @@ import (
 
 func TestUpgradeCmd(t *testing.T) {
 	usage := `Usage:
-  toolctl upgrade TOOL... [flags]
+  toolctl upgrade [TOOL...] [flags]
 
 Examples:
-  # Upgrade a tool
+  # Upgrade all tools
+  toolctl upgrade
+
+  # Upgrade a specific tool
   toolctl upgrade minikube
 
   # Upgrade multiple tools
-  toolctl upgrade kustomize k9s
+  toolctl upgrade gh k9s
 
 Flags:
   -h, --help   help for upgrade
 
 Global Flags:
       --config string   path of the config file (default is $HOME/.config/toolctl/config.yaml)
-
 `
 
 	tests := []test{
 		{
-			name:    "no cli args",
-			cliArgs: []string{},
-			wantErr: true,
-			wantOut: `Error: no tool specified
-` + usage,
+			name:    "--help flag",
+			cliArgs: []string{"--help"},
+			wantOut: "Upgrade tools\n\n" + usage,
+		},
+		// -------------------------------------------------------------------------
+		{
+			name: "no args",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.1",
+					tarGz:   true,
+				},
+			},
+			preinstalledTools: []preinstalledTool{
+				{
+					name: "toolctl-test-tool",
+					fileContents: `#!/bin/sh
+echo "v0.1.0"
+`,
+				},
+			},
+			wantOut: `👷 Upgrading from v0.1.0 to v0.1.1 ...
+👷 Removing v0.1.0 ...
+👷 Installing v0.1.1 ...
+🎉 Successfully installed
+`,
 		},
 		// -------------------------------------------------------------------------
 		{
@@ -113,8 +137,7 @@ echo "v0.1.0"
 			},
 			preinstalledToolIsSymlinked: true,
 			cliArgs:                     []string{"toolctl-test-tool"},
-			wantErr:                     true,
-			wantOutRegex: `Error: aborting: .+ is symlinked from .+
+			wantOutRegex: `^🚫 skipping: .+ is symlinked from .+
 $`,
 		},
 		// -------------------------------------------------------------------------

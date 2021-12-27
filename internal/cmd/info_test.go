@@ -13,36 +13,71 @@ import (
 func TestInfoCmd(t *testing.T) {
 	tests := []test{
 		{
-			name:    "no cli args",
-			cliArgs: []string{},
-			wantErr: true,
-			wantOut: `Error: no tool specified
+			name:    "--help flag",
+			cliArgs: []string{"--help"},
+			wantOut: `Get information about tools
+
 Usage:
-  toolctl info TOOL... [flags]
+  toolctl info [TOOL...] [flags]
 
 Examples:
-  # Get information about a tool
+  # Get information about installed tools
+  toolctl info
+
+  # Get information about a specific tool
   toolctl info kubectl
 
   # Get information about multiple tools
-  toolctl info k9s kustomize
+  toolctl info gh k9s
 
 Flags:
   -h, --help   help for info
 
 Global Flags:
       --config string   path of the config file (default is $HOME/.config/toolctl/config.yaml)
-
 `,
 		},
+		// -------------------------------------------------------------------------
+		{
+			name:    "no args, no supported tools installed",
+			cliArgs: []string{},
+			wantErr: true,
+			wantOut: `Error: no supported tools installed
+`,
+		},
+		// -------------------------------------------------------------------------
+		{
+			name:    "no args, supported tool installed",
+			cliArgs: []string{"toolctl-test-tool"},
+			preinstalledTools: []preinstalledTool{
+				{
+					name: "toolctl-test-tool",
+					fileContents: `#!/bin/sh
+echo "v0.1.0"
+`,
+				},
+			},
+			wantOutRegex: `^✨ toolctl-test-tool v0.1.1: toolctl test tool
+🔄 toolctl-test-tool v0.1.0 is installed at .+
+$`,
+		},
+		// -------------------------------------------------------------------------
 		{
 			name:    "supported tool",
 			cliArgs: []string{"toolctl-test-tool"},
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.1",
+					tarGz:   true,
+				},
+			},
 			wantOut: `✨ toolctl-test-tool v0.1.1: toolctl test tool
 🏠 https://toolctl.io/
 ❌ Not installed
 `,
 		},
+		// -------------------------------------------------------------------------
 		{
 			name:    "multiple supported tools",
 			cliArgs: []string{"toolctl-test-tool", "toolctl-test-tool"},
@@ -54,6 +89,7 @@ Global Flags:
 [toolctl-test-tool] ❌ Not installed
 `,
 		},
+		// -------------------------------------------------------------------------
 		{
 			name:    "multiple supported tools, one of them with version",
 			cliArgs: []string{"toolctl-test-tool", "toolctl-test-tool@2.0.0"},
@@ -62,6 +98,7 @@ Global Flags:
   toolctl info toolctl-test-tool toolctl-test-tool
 `,
 		},
+		// -------------------------------------------------------------------------
 		{
 			name: "supported tool, latest version already installed",
 			preinstalledTools: []preinstalledTool{
@@ -78,6 +115,7 @@ echo "v0.1.1"
 ✅ toolctl-test-tool v0.1.1 is installed at .+
 $`,
 		},
+		// -------------------------------------------------------------------------
 		{
 			name: "supported tool, other version already installed",
 			preinstalledTools: []preinstalledTool{
@@ -94,6 +132,7 @@ echo "v0.1.0"
 🔄 toolctl-test-tool v0.1.0 is installed at .+
 $`,
 		},
+		// -------------------------------------------------------------------------
 		{
 			name: "supported tool, version could not be determined",
 			preinstalledTools: []preinstalledTool{
@@ -111,6 +150,7 @@ exit 1
 ❌ Could not determine installed version: version flag not supported (exit status 1)
 `,
 		},
+		// -------------------------------------------------------------------------
 		{
 			name: "supported tool symlinked",
 			preinstalledTools: []preinstalledTool{
@@ -128,6 +168,7 @@ echo "v0.1.1"
 🔗 Symlinked from .+/symlinked-toolctl-test-tool
 $`,
 		},
+		// -------------------------------------------------------------------------
 		{
 			name:    "unsupported tool",
 			cliArgs: []string{"toolctl-unsupported-test-tool"},
