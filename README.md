@@ -14,7 +14,7 @@
 ### Automatic
 
 ```shell
-sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/toolctl/install/main/install)"
+sudo bash -c "$(curl -fsSL https://toolctl.io/install)"
 ```
 
 ### Manual
@@ -81,6 +81,7 @@ Currently, `toolctl` supports the following tools:
 - age
 - dive
 - gh
+- golangci-lint
 - helm
 - k9s
 - kubectl
@@ -92,6 +93,7 @@ Currently, `toolctl` supports the following tools:
 - minikube
 - sops
 - stern
+- tkn
 - toolctl
 - yq
 
