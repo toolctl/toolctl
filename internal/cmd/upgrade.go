@@ -25,7 +25,7 @@ func newUpgradeCmd(
 
   # Upgrade multiple tools
   toolctl upgrade kustomize k9s`,
-		Args: checkArgs(),
+		Args: checkArgs(false),
 		RunE: newRunUpgrade(toolctlWriter, localAPIFS),
 	}
 	return upgradeCmd

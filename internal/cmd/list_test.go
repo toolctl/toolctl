@@ -49,6 +49,16 @@ Global Flags:
 		},
 		{
 			name: "toolctl-test-tool installed",
+			supportedTools: []supportedTool{
+				{
+					name:  "toolctl-test-tool",
+					tarGz: true,
+				},
+				{
+					name:  "toolctl-another-test-tool",
+					tarGz: true,
+				},
+			},
 			preinstalledTools: []preinstalledTool{
 				{
 					name: "toolctl-test-tool",
@@ -61,7 +71,6 @@ echo v0.1.0
 echo v0.1.0
 `},
 			},
-
 			wantOut: `toolctl-test-tool
 toolctl-another-test-tool
 `,

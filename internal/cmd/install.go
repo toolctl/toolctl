@@ -35,7 +35,7 @@ func newInstallCmd(
 
   # Install multiple tools
   toolctl install kustomize k9s`,
-		Args: checkArgs(),
+		Args: checkArgs(false),
 		RunE: newRunInstall(toolctlWriter, localAPIFS),
 	}
 	return installCmd

@@ -13,37 +13,7 @@ import (
 )
 
 func TestAPIDiscoverCmd(t *testing.T) {
-	tests := []test{
-		{
-			name:    "no cli args",
-			cliArgs: []string{},
-			wantErr: true,
-			wantOut: `Error: no tool specified
-Usage:
-  toolctl api discover TOOL[@VERSION]... [flags]
-
-Examples:
-  # Discover new versions of kubectl
-  toolctl discover kubectl
-
-  # Discover new versions of kubectl, starting with v1.20.0
-  toolctl discover kubectl@1.20.0
-
-Flags:
-      --arch strings   comma-separated list of architectures (default [amd64,arm64])
-  -h, --help           help for discover
-      --os strings     comma-separated list of operating systems (default [darwin,linux])
-
-Global Flags:
-      --config string   path of the config file (default is $HOME/.config/toolctl/config.yaml)
-
-`,
-		},
-		// -------------------------------------------------------------------------
-		{
-			name:    "supported tool",
-			cliArgs: []string{"toolctl-test-tool"},
-			wantOut: `toolctl-test-tool darwin/amd64 v0.1.2 ...
+	defaultOutput := `toolctl-test-tool darwin/amd64 v0.1.2 ...
 URL: {{downloadServerURL}}/darwin/amd64/0.1.2/toolctl-test-tool
 HTTP status: 404
 toolctl-test-tool darwin/amd64 v0.1.3 ...
@@ -133,7 +103,54 @@ HTTP status: 404
 toolctl-test-tool linux/arm64 v2.0.0 ...
 URL: {{downloadServerURL}}/linux/arm64/2.0.0/toolctl-test-tool
 HTTP status: 404
+`
+
+	tests := []test{
+		{
+			name:    "help flag",
+			cliArgs: []string{"--help"},
+			wantOut: `Discover new versions of supported tools
+
+Usage:
+  toolctl api discover [TOOL[@VERSION]...] [flags]
+
+Examples:
+  # Discover new versions of all tools
+  toolctl discover
+
+  # Discover new versions of a specific tool
+  toolctl discover minikube
+
+  # Discover new versions of a specific tool, starting with a specific version
+  toolctl discover kubectl@1.20.0
+
+Flags:
+      --arch strings   comma-separated list of architectures (default [amd64,arm64])
+  -h, --help           help for discover
+      --os strings     comma-separated list of operating systems (default [darwin,linux])
+
+Global Flags:
+      --config string   path of the config file (default is $HOME/.config/toolctl/config.yaml)
 `,
+		},
+		// -------------------------------------------------------------------------
+		{
+			name:    "no cli args",
+			cliArgs: []string{},
+			wantOut: defaultOutput,
+			wantFiles: []APIFile{
+				{
+					Path: fmt.Sprintf(
+						"toolctl-test-tool/%s-%s/0.2.0.yaml", runtime.GOOS, runtime.GOARCH,
+					),
+				},
+			},
+		},
+		// -------------------------------------------------------------------------
+		{
+			name:    "supported tool",
+			cliArgs: []string{"toolctl-test-tool"},
+			wantOut: defaultOutput,
 			wantFiles: []APIFile{
 				{
 					Path: fmt.Sprintf(

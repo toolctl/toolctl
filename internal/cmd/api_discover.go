@@ -21,14 +21,17 @@ import (
 
 func newDiscoverCmd(toolctlWriter io.Writer, localAPIFS afero.Fs) *cobra.Command {
 	discoverCmd := &cobra.Command{
-		Use:   "discover TOOL[@VERSION]... [flags]",
-		Short: "Discover new versions of one or more tools",
-		Example: `  # Discover new versions of kubectl
-  toolctl discover kubectl
+		Use:   "discover [TOOL[@VERSION]...] [flags]",
+		Short: "Discover new versions of supported tools",
+		Example: `  # Discover new versions of all tools
+  toolctl discover
 
-  # Discover new versions of kubectl, starting with v1.20.0
+  # Discover new versions of a specific tool
+  toolctl discover minikube
+
+  # Discover new versions of a specific tool, starting with a specific version
   toolctl discover kubectl@1.20.0`,
-		Args: checkArgs(),
+		Args: checkArgs(true),
 		RunE: newRunDiscover(toolctlWriter, localAPIFS),
 	}
 
@@ -46,6 +49,7 @@ func newRunDiscover(toolctlWriter io.Writer, localAPIFS afero.Fs) func(cmd *cobr
 			return err
 		}
 
+		// Get the command line flags
 		osArg, err := cmd.Flags().GetStringSlice("os")
 		if err != nil {
 			return err
@@ -55,6 +59,17 @@ func newRunDiscover(toolctlWriter io.Writer, localAPIFS afero.Fs) func(cmd *cobr
 			return err
 		}
 
+		// If we received no arguments, we need to discover all tools
+		if len(args) == 0 {
+			var meta api.Meta
+			meta, err = api.GetMeta(toolctlAPI)
+			if err != nil {
+				return
+			}
+			args = meta.Tools
+		}
+
+		// Convert the arguments to a list of tools
 		var allTools []api.Tool
 		for _, os := range osArg {
 			for _, arch := range archArg {

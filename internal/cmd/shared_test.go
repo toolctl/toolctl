@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -174,6 +175,8 @@ func setupRemoteAPI(supportedTools []supportedTool) (
 
 	apiFiles := getDefaultAPIFiles(downloadServer.URL)
 
+	// Create the API content for all supported tools
+	supportedToolNames := make([]string, len(supportedTools))
 	for _, supportedTool := range supportedTools {
 		var sha256 string
 		sha256, err = supportedToolToDownloadFile(downloadServerFS, supportedTool)
@@ -184,8 +187,19 @@ func setupRemoteAPI(supportedTools []supportedTool) (
 			apiFiles,
 			supportedToolToAPIContents(supportedTool, downloadServer.URL, sha256)...,
 		)
+		supportedToolNames = append(supportedToolNames, supportedTool.name)
 	}
 
+	// Create the top-level API content that holds the list of all supported tools
+	apiFiles = append(
+		apiFiles,
+		APIFile{
+			Path:     path.Join(localAPIBasePath, "meta.yaml"),
+			Contents: "tools:\n  - " + strings.Join(supportedToolNames, "\n  - ") + "\n",
+		},
+	)
+
+	// Write the API files
 	for _, f := range apiFiles {
 		err = afero.WriteFile(localAPIFS, f.Path, []byte(f.Contents), 0644)
 		if err != nil {
@@ -239,8 +253,6 @@ func getDefaultAPIFiles(downloadServerURL string) []APIFile {
 			Path: path.Join(localAPIBasePath, "meta.yaml"),
 			Contents: `tools:
   - toolctl-test-tool
-  - toolctl-another-test-tool
-  - toolctl-uninstalled-tool
 `,
 		},
 
