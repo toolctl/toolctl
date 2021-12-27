@@ -26,7 +26,7 @@ func newInstallCmd(
 ) *cobra.Command {
 	var installCmd = &cobra.Command{
 		Use:   "install TOOL[@VERSION]... [flags]",
-		Short: "Install one or more tools",
+		Short: "Install tools",
 		Example: `  # Install the latest version of a tool
   toolctl install minikube
 
@@ -34,7 +34,7 @@ func newInstallCmd(
   toolctl install kubectl@1.20.13
 
   # Install multiple tools
-  toolctl install kustomize k9s`,
+  toolctl install gh k9s`,
 		Args: checkArgs(false),
 		RunE: newRunInstall(toolctlWriter, localAPIFS),
 	}

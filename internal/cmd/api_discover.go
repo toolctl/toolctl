@@ -59,7 +59,7 @@ func newRunDiscover(toolctlWriter io.Writer, localAPIFS afero.Fs) func(cmd *cobr
 			return err
 		}
 
-		// If we received no arguments, we need to discover all tools
+		// If no args were specified, discover all tools
 		if len(args) == 0 {
 			var meta api.Meta
 			meta, err = api.GetMeta(toolctlAPI)

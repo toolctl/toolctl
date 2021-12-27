@@ -18,14 +18,17 @@ func newUpgradeCmd(
 	toolctlWriter io.Writer, localAPIFS afero.Fs,
 ) *cobra.Command {
 	var upgradeCmd = &cobra.Command{
-		Use:   "upgrade TOOL... [flags]",
-		Short: "Upgrade one or more tools",
-		Example: `  # Upgrade a tool
+		Use:   "upgrade [TOOL...] [flags]",
+		Short: "Upgrade tools",
+		Example: `  # Upgrade all tools
+  toolctl upgrade
+
+  # Upgrade a specific tool
   toolctl upgrade minikube
 
   # Upgrade multiple tools
-  toolctl upgrade kustomize k9s`,
-		Args: checkArgs(false),
+  toolctl upgrade gh k9s`,
+		Args: checkArgs(true),
 		RunE: newRunUpgrade(toolctlWriter, localAPIFS),
 	}
 	return upgradeCmd
@@ -38,6 +41,31 @@ func newRunUpgrade(
 		toolctlAPI, err := api.New(localAPIFS, cmd, api.Remote)
 		if err != nil {
 			return err
+		}
+
+		// If no args were specified, upgrade all installed tools
+		if len(args) == 0 {
+			// Get the list of all tools
+			var meta api.Meta
+			meta, err = api.GetMeta(toolctlAPI)
+			if err != nil {
+				return
+			}
+
+			// Check which tools are installed
+			var installedToolNames []string
+			for _, toolName := range meta.Tools {
+				var installed bool
+				installed, err = isToolInstalled(toolName)
+				if err != nil {
+					return
+				}
+				if installed {
+					installedToolNames = append(installedToolNames, toolName)
+				}
+			}
+
+			args = installedToolNames
 		}
 
 		allTools, err := ArgsToTools(args, runtime.GOOS, runtime.GOARCH, false)
@@ -140,10 +168,14 @@ func upgrade(
 		if err != nil {
 			return
 		}
-		err = fmt.Errorf(
-			"aborting: %s is symlinked from %s",
-			wrapInQuotesIfContainsSpace(installedToolPath),
-			wrapInQuotesIfContainsSpace(symlinkPath),
+		fmt.Fprintln(
+			toolctlWriter, prependToolName(
+				tool, allTools, fmt.Sprintf(
+					"🚫 skipping: %s is symlinked from %s",
+					wrapInQuotesIfContainsSpace(installedToolPath),
+					wrapInQuotesIfContainsSpace(symlinkPath),
+				),
+			),
 		)
 		return
 	}

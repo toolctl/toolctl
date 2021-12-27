@@ -17,7 +17,7 @@ Examples:
   toolctl install kubectl@1.20.13
 
   # Install multiple tools
-  toolctl install kustomize k9s
+  toolctl install gh k9s
 
 Flags:
   -h, --help   help for install

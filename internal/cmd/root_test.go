@@ -13,19 +13,22 @@ func TestRootCmd(t *testing.T) {
   toolctl [command]
 
 Examples:
-  # Get information about a tool
-  toolctl info kubectl
+  # Get information about installed tools
+  toolctl info
 
-  # Install a tool
-  toolctl install minikube
+  # Install tools
+  toolctl install minikube k9s
+
+  # Upgrade supported tools
+  toolctl upgrade
 
 Available Commands:
   completion  Generate the autocompletion script for the specified shell
   help        Help about any command
-  info        Information about one or more tools
-  install     Install one or more tools
+  info        Get information about tools
+  install     Install tools
   list        List the tools
-  upgrade     Upgrade one or more tools
+  upgrade     Upgrade tools
   version     Display the version of toolctl
 
 Flags:
