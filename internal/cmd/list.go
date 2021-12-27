@@ -58,7 +58,7 @@ func newRunList(
 }
 
 func list(toolctlWriter io.Writer, toolctlAPI api.ToolctlAPI) (err error) {
-	// Get the global metadata that includes the list of supported tools
+	// Get the metadata that holds the list of supported tools
 	meta, err := api.GetMeta(toolctlAPI)
 	if err != nil {
 		return

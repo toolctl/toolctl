@@ -8,7 +8,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Meta contains global metadata for the toolctl API.
+// Meta contains metadata for the toolctl API.
 type Meta struct {
 	Tools []string
 }

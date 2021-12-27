@@ -21,7 +21,7 @@ func newInfoCmd(toolctlWriter io.Writer, localAPIFS afero.Fs) *cobra.Command {
 	var infoCmd = &cobra.Command{
 		Use:   "info TOOL...",
 		Short: "Information about one or more tools",
-		Args:  checkArgs(),
+		Args:  checkArgs(false),
 		Example: `  # Get information about a tool
   toolctl info kubectl
 

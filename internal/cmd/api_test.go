@@ -18,7 +18,7 @@ Usage:
   toolctl api [command]
 
 Available Commands:
-  discover    Discover new versions of one or more tools
+  discover    Discover new versions of supported tools
   sync        Sync the list of supported tools
 
 Flags:
