@@ -23,7 +23,30 @@ You can [download the latest version of toolctl](https://github.com/toolctl/tool
 
 ## Getting Started
 
-### Install the latest version of a tool
+### Get information about tools
+
+#### Info about all installed and supported tools
+
+```text
+❯ toolctl info
+[k9s      ] ✨ k9s v0.25.8: Kubernetes CLI to manage your clusters in style
+[k9s      ] ✅ k9s v0.25.8 is installed at /usr/local/bin/k9s
+[kubectl  ] ✨ kubectl v1.23.0: The Kubernetes command-line tool
+[kubectl  ] 🔄 kubectl v1.21.2 is installed at /usr/local/bin/kubectl
+```
+
+#### Info about a specific tool
+
+```text
+❯ toolctl info gh
+✨ gh v2.4.0: GitHub's official command line tool
+🏠 https://cli.github.com/
+❌ Not installed
+```
+
+### Install tools
+
+#### Install the latest version of a tool
 
 ```text
 ❯ toolctl install k9s
@@ -31,7 +54,7 @@ You can [download the latest version of toolctl](https://github.com/toolctl/tool
 🎉 Successfully installed
 ```
 
-### Install a specific version of a tool
+#### Install a specific version of a tool
 
 ```text
 ❯ toolctl install kustomize@3.9.4
@@ -39,7 +62,7 @@ You can [download the latest version of toolctl](https://github.com/toolctl/tool
 🎉 Successfully installed
 ```
 
-### Upgrade a tool
+### Upgrade tools
 
 ```text
 ❯ toolctl upgrade yq
@@ -47,35 +70,6 @@ You can [download the latest version of toolctl](https://github.com/toolctl/tool
 👷 Removing v4.13.4 ...
 👷 Installing v4.13.5 ...
 🎉 Successfully installed
-```
-
-### Get information about tools
-
-```text
-❯ toolctl info k9s
-✨ k9s v0.25.8: Kubernetes CLI to manage your clusters in style
-✅ k9s v0.25.8 is installed at /usr/local/bin/k9s
-
-❯ toolctl info kubectl
-✨ kubectl v1.23.0: The Kubernetes command-line tool
-🔄 kubectl v1.21.2 is installed at /usr/local/bin/kubectl
-
-❯ toolctl info kuberlr
-✨ kuberlr v0.4.1: Simple management of multiple kubectl versions
-🏠 https://github.com/flavio/kuberlr
-❌ Not installed
-```
-
-### Check if your tools are up-to-date
-
-```text
-❯ toolctl list | xargs toolctl info
-[k9s      ] ✨ k9s v0.25.8: Kubernetes CLI to manage your clusters in style
-[k9s      ] ✅ k9s v0.25.8 is installed at /usr/local/bin/k9s
-[kubectl  ] ✨ kubectl v1.23.0: The Kubernetes command-line tool
-[kubectl  ] 🔄 kubectl v1.21.2 is installed at /usr/local/bin/kubectl
-[kustomize] ✨ kustomize v4.4.1: Template-free customization of Kubernetes configuration
-[kustomize] 🔄 kustomize v3.9.4 is installed at /usr/local/bin/kustomize
 ```
 
 ## Supported Tools
