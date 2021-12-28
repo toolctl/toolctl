@@ -14,7 +14,8 @@ import (
 )
 
 var (
-	allFlag bool
+	allFlag      bool
+	markdownFlag bool
 )
 
 func newListCmd(toolctlWriter io.Writer, localAPIFS afero.Fs) *cobra.Command {
@@ -34,7 +35,20 @@ func newListCmd(toolctlWriter io.Writer, localAPIFS afero.Fs) *cobra.Command {
 	}
 
 	// Flags
-	listCmd.Flags().BoolVarP(&allFlag, "all", "a", false, "list all supported tools, including those not installed")
+	listCmd.Flags().BoolVarP(
+		&allFlag, "all", "a", false,
+		"list all supported tools, including those not installed",
+	)
+
+	// Hidden flags
+	listCmd.Flags().BoolVar(
+		&markdownFlag, "markdown", false,
+		"output in markdown format",
+	)
+	err := listCmd.Flags().MarkHidden("markdown")
+	if err != nil {
+		panic(err)
+	}
 
 	return listCmd
 }
@@ -48,7 +62,7 @@ func newRunList(
 			return err
 		}
 
-		err = list(toolctlWriter, toolctlAPI)
+		err = list(cmd, toolctlWriter, toolctlAPI)
 		if err != nil {
 			return
 		}
@@ -57,13 +71,16 @@ func newRunList(
 	}
 }
 
-func list(toolctlWriter io.Writer, toolctlAPI api.ToolctlAPI) (err error) {
+func list(
+	cmd *cobra.Command, toolctlWriter io.Writer, toolctlAPI api.ToolctlAPI,
+) (err error) {
 	// Get the metadata that holds the list of supported tools
 	meta, err := api.GetMeta(toolctlAPI)
 	if err != nil {
 		return
 	}
 
+	// Build the list of tools
 	var toolNames []string
 	if allFlag {
 		toolNames = meta.Tools
@@ -78,14 +95,43 @@ func list(toolctlWriter io.Writer, toolctlAPI api.ToolctlAPI) (err error) {
 				toolNames = append(toolNames, toolName)
 			}
 		}
+
+		if len(toolNames) == 0 {
+			fmt.Fprintln(toolctlWriter, "No tools installed")
+			return
+		}
 	}
 
-	// Print the list of tools
-	if len(toolNames) == 0 {
-		fmt.Fprintln(toolctlWriter, "No tools installed")
-		return
+	if markdownFlag {
+		var localFlag bool
+		localFlag, err = cmd.Flags().GetBool("local")
+		if err != nil {
+			return
+		}
+
+		if !localFlag {
+			return fmt.Errorf("--markdown also requires --local")
+		}
+
+		return printMarkdown(toolctlWriter, toolctlAPI, toolNames)
 	}
 
+	fi, _ := os.Stdout.Stat()
+	if (fi.Mode() & os.ModeCharDevice) == 0 {
+		return printToPipe(toolctlWriter, toolNames)
+	}
+
+	return printToTerminal(toolctlWriter, toolNames)
+}
+
+func printToPipe(toolctlWriter io.Writer, toolNames []string) (err error) {
+	for _, toolName := range toolNames {
+		fmt.Fprintln(toolctlWriter, toolName)
+	}
+	return
+}
+
+func printToTerminal(toolctlWriter io.Writer, toolNames []string) (err error) {
 	maxToolNameLen := 0
 	for _, toolName := range toolNames {
 		if len(toolName) > maxToolNameLen {
@@ -93,54 +139,44 @@ func list(toolctlWriter io.Writer, toolctlAPI api.ToolctlAPI) (err error) {
 		}
 	}
 
-	// Set the output mode
-	var outputMode string
-	fi, _ := os.Stdout.Stat()
-	if (fi.Mode() & os.ModeCharDevice) == 0 {
-		outputMode = "pipe"
-	} else {
-		outputMode = "terminal"
-	}
-
-	// If the output is a terminal, apply some fancy formatting
-	if outputMode == "terminal" {
-		var terminalWidth int
-		terminalWidth, err = getTerminalWidth()
-		if err != nil {
-			return
-		}
-
-		toolsPerLine := terminalWidth / (maxToolNameLen + 3)
-
-		for i, toolName := range toolNames {
-			fmt.Fprintf(
-				toolctlWriter, "%s%s   ",
-				toolName, strings.Repeat(" ", maxToolNameLen-len(toolName)),
-			)
-			if (i+1)%toolsPerLine == 0 {
-				fmt.Fprintln(toolctlWriter)
-			}
-		}
-		fmt.Fprintln(toolctlWriter)
+	var terminalWidth int
+	terminalWidth, err = getTerminalWidth()
+	if err != nil {
 		return
 	}
 
-	// Print the list of installed tools, one per line
-	for _, toolName := range toolNames {
-		fmt.Fprintln(toolctlWriter, toolName)
+	toolsPerLine := terminalWidth / (maxToolNameLen + 3)
+
+	for i, toolName := range toolNames {
+		fmt.Fprintf(
+			toolctlWriter, "%s%s   ",
+			toolName, strings.Repeat(" ", maxToolNameLen-len(toolName)),
+		)
+		if (i+1)%toolsPerLine == 0 {
+			fmt.Fprintln(toolctlWriter)
+		}
 	}
+	fmt.Fprintln(toolctlWriter)
 
 	return
 }
 
-func isToolInstalled(toolName string) (installed bool, err error) {
-	installedToolPath, err := which(toolName)
-	if err != nil {
-		return
+func printMarkdown(
+	toolctlWriter io.Writer, toolctlAPI api.ToolctlAPI, toolNames []string,
+) (err error) {
+	for _, toolName := range toolNames {
+		var toolMeta api.ToolMeta
+		toolMeta, err = api.GetToolMeta(toolctlAPI, api.Tool{Name: toolName})
+		if err != nil {
+			return
+		}
+
+		fmt.Fprintf(
+			toolctlWriter, "- [%s](%s): %s\n",
+			toolName, toolMeta.Homepage, toolMeta.Description,
+		)
 	}
-	if installedToolPath != "" {
-		installed = true
-	}
+
 	return
 }
 
