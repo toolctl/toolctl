@@ -78,26 +78,26 @@ You can [download the latest version of toolctl](https://github.com/toolctl/tool
 
 Currently, `toolctl` supports the following tools:
 
-- age
-- chezmoi
-- dive
-- gh
-- golangci-lint
-- helm
-- k9s
-- kubectl
-- kubectx
-- kubefwd
-- kubens
-- kuberlr
-- kustomize
-- minikube
-- sops
-- stern
-- terraform
-- tkn
-- toolctl
-- yq
+- [age](https://age-encryption.org/): A simple, modern and secure encryption tool
+- [chezmoi](https://chezmoi.io/): Manage your dotfiles across multiple diverse machines, securely
+- [dive](https://github.com/wagoodman/dive): A tool for exploring each layer in a docker image
+- [gh](https://cli.github.com/): GitHub's official command line tool
+- [golangci-lint](https://golangci-lint.run/): Fast linters runner for Go
+- [helm](https://helm.sh/): The Kubernetes package manager
+- [k9s](https://k9scli.io/): Kubernetes CLI to manage your clusters in style
+- [kubectl](https://kubernetes.io/docs/reference/kubectl/): The Kubernetes command-line tool
+- [kubectx](https://github.com/ahmetb/kubectx): Faster way to switch between Kubernetes contexts
+- [kubefwd](https://github.com/txn2/kubefwd): Bulk port forwarding Kubernetes services for local development
+- [kubens](https://github.com/ahmetb/kubectx): Faster way to switch between Kubernetes namespaces
+- [kuberlr](https://github.com/flavio/kuberlr): Simple management of multiple kubectl versions
+- [kustomize](https://kustomize.io/): Template-free customization of Kubernetes configuration
+- [minikube](https://minikube.sigs.k8s.io/): Run Kubernetes locally
+- [sops](https://github.com/mozilla/sops): Simple and flexible tool for managing secrets
+- [stern](https://github.com/stern/stern): Multi pod and container log tailing for Kubernetes
+- [terraform](https://www.terraform.io/): Infrastructure as code software tool
+- [tkn](https://github.com/tektoncd/cli): A CLI for interacting with Tekton
+- [toolctl](https://github.com/toolctl/toolctl): controls your tools
+- [yq](https://mikefarah.gitbook.io/yq/): Portable command-line YAML processor
 
 Our goal is to support as many tools as possible, so expect this list to grow significantly over time.
 
