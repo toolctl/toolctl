@@ -162,10 +162,8 @@ echo "v0.1.0"
 `,
 				},
 			},
-			preinstalledToolIsSymlinked: true,
-			cliArgs:                     []string{"toolctl-test-tool"},
-			wantErr:                     true,
-			wantOutRegex: `Error: aborting: toolctl-test-tool is currently installed in .+, not in .+
+			cliArgs: []string{"toolctl-test-tool"},
+			wantOutRegex: `^🚫 skipping: toolctl-test-tool is installed in .+, not in .+
 $`,
 		},
 		// -------------------------------------------------------------------------

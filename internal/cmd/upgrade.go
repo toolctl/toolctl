@@ -116,9 +116,13 @@ func upgrade(
 
 	// Check if the tool is installed in a different directory
 	if filepath.Dir(installedToolPath) != installDir {
-		err = fmt.Errorf(
-			"aborting: %s is currently installed in %s, not in %s",
-			tool.Name, filepath.Dir(installedToolPath), installDir,
+		fmt.Fprintln(
+			toolctlWriter, prependToolName(
+				tool, allTools, fmt.Sprintf(
+					"🚫 skipping: %s is installed in %s, not in %s",
+					tool.Name, filepath.Dir(installedToolPath), installDir,
+				),
+			),
 		)
 		return
 	}
