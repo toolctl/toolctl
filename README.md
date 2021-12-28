@@ -94,6 +94,7 @@ Currently, `toolctl` supports the following tools:
 - minikube
 - sops
 - stern
+- terraform
 - tkn
 - toolctl
 - yq
