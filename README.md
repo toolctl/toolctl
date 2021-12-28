@@ -1,4 +1,4 @@
-# toolctl: controls your tools
+# toolctl
 
 <img src="https://user-images.githubusercontent.com/547220/146074557-339fc1e4-f83e-4cbb-b885-74cb6b52fd46.png" width="200px" alt="A drawing of a cute gopher holding a wrench">
 
@@ -96,7 +96,7 @@ Currently, `toolctl` supports the following tools:
 - [stern](https://github.com/stern/stern): Multi pod and container log tailing for Kubernetes
 - [terraform](https://www.terraform.io/): Infrastructure as code software tool
 - [tkn](https://github.com/tektoncd/cli): A CLI for interacting with Tekton
-- [toolctl](https://github.com/toolctl/toolctl): controls your tools
+- [toolctl](https://github.com/toolctl/toolctl): The tool to control your tools
 - [yq](https://mikefarah.gitbook.io/yq/): Portable command-line YAML processor
 
 Our goal is to support as many tools as possible, so expect this list to grow significantly over time.
