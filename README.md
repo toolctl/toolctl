@@ -79,6 +79,7 @@ You can [download the latest version of toolctl](https://github.com/toolctl/tool
 Currently, `toolctl` supports the following tools:
 
 - age
+- chezmoi
 - dive
 - gh
 - golangci-lint
@@ -99,9 +100,10 @@ Currently, `toolctl` supports the following tools:
 
 Our goal is to support as many tools as possible, so expect this list to grow significantly over time.
 
-In general, `toolctl` supports any tool that:
+In general, `toolctl` currently supports any tool that:
 
 ✔ consists of a single executable file\
+✔ has no external dependencies\
 ✔ runs on Linux and/or macOS\
 ✔ includes a version command or flag\
 ✔ provides its source code and precompiled binaries online under a free and open source license
