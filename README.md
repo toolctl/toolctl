@@ -57,8 +57,8 @@ You can [download the latest version of toolctl](https://github.com/toolctl/tool
 #### Install a specific version of a tool
 
 ```text
-❯ toolctl install kustomize@3.9.4
-👷 Installing v3.9.4 ...
+❯ toolctl install terraform@0.11.15
+👷 Installing v0.11.15 ...
 🎉 Successfully installed
 ```
 
