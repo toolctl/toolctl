@@ -120,6 +120,9 @@ func discover(
 			return strings.Replace(in, "darwin", "macOS", 1)
 		},
 		"Title": strings.Title,
+		"X64": func(in string) string {
+			return strings.Replace(in, "amd64", "x64", 1)
+		},
 		"X86_64": func(in string) string {
 			return strings.Replace(in, "amd64", "x86_64", 1)
 		},
