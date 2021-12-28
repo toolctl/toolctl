@@ -182,6 +182,17 @@ func getToolBinaryVersion(
 	return
 }
 
+func isToolInstalled(toolName string) (installed bool, err error) {
+	installedToolPath, err := which(toolName)
+	if err != nil {
+		return
+	}
+	if installedToolPath != "" {
+		installed = true
+	}
+	return
+}
+
 func prependToolName(tool api.Tool, allTools []api.Tool, message ...string) string {
 	if len(allTools) == 1 {
 		return strings.Join(message, " ")

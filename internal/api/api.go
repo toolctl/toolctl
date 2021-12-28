@@ -28,24 +28,28 @@ type ToolctlAPI interface {
 
 // New returns a new API instance, based on the specified command line flags
 // and the default location.
-func New(localAPIFS afero.Fs, cmd *cobra.Command, defaultLocation Location) (ToolctlAPI, error) {
-	localFlag, err := cmd.Flags().GetBool("local")
+func New(
+	localAPIFS afero.Fs, cmd *cobra.Command, defaultLocation Location,
+) (toolctlAPI ToolctlAPI, err error) {
+	var localFlag bool
+	localFlag, err = cmd.Flags().GetBool("local")
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	if localFlag || defaultLocation == Local {
-		localAPIBasePath, err := utils.RequireConfigString("LocalAPIBasePath")
+		var localAPIBasePath string
+		localAPIBasePath, err = utils.RequireConfigString("LocalAPIBasePath")
 		if err != nil {
-			return nil, err
+			return
 		}
 		return NewLocalAPI(localAPIFS, localAPIBasePath)
 	}
 
-	remoteAPIBaseURL, err := utils.RequireConfigString("RemoteAPIBaseURL")
+	var remoteAPIBaseURL string
+	remoteAPIBaseURL, err = utils.RequireConfigString("RemoteAPIBaseURL")
 	if err != nil {
-		return nil, err
+		return
 	}
 	return NewRemoteAPI(localAPIFS, remoteAPIBaseURL)
-
 }
