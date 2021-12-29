@@ -268,6 +268,57 @@ HTTP status: 404
 		},
 		// -------------------------------------------------------------------------
 		{
+			name:    "DefaultAMD64 template function",
+			cliArgs: []string{"toolctl-test-tool-template-func"},
+			supportedTools: []supportedTool{
+				{
+					name:                    "toolctl-test-tool-template-func",
+					version:                 "0.1.0",
+					downloadURLTemplatePath: "/v{{.Version}}/{{.Name}}-v{{.Version}}.{{.OS}}{{.Arch | DefaultAMD64 }}",
+					tarGz:                   true,
+				},
+			},
+			wantOutRegex: `(?s)URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.darwin.+
+URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.darwinarm64.+
+URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.linux.+
+URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.linuxarm64`,
+		},
+		// -------------------------------------------------------------------------
+		{
+			name:    "MacOS and X64 template functions",
+			cliArgs: []string{"toolctl-test-tool-template-func"},
+			supportedTools: []supportedTool{
+				{
+					name:                    "toolctl-test-tool-template-func",
+					version:                 "0.1.0",
+					downloadURLTemplatePath: "/v{{.Version}}/{{.Name}}-v{{.Version}}.{{.OS | MacOS}}.{{.Arch | X64}}",
+					tarGz:                   true,
+				},
+			},
+			wantOutRegex: `(?s)URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.macOS.x64.+
+URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.macOS.arm64.+
+URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.linux.x64.+
+URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.linux.arm64`,
+		},
+		// -------------------------------------------------------------------------
+		{
+			name:    "X86_64 and Title template functions",
+			cliArgs: []string{"toolctl-test-tool-template-func"},
+			supportedTools: []supportedTool{
+				{
+					name:                    "toolctl-test-tool-template-func",
+					version:                 "0.1.0",
+					downloadURLTemplatePath: "/v{{.Version}}/{{.Name}}-v{{.Version}}.{{.OS | Title}}.{{.Arch | X86_64}}",
+					tarGz:                   true,
+				},
+			},
+			wantOutRegex: `(?s)URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.Darwin.x86_64.+
+URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.Darwin.arm64.+
+URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.Linux.x86_64.+
+URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.Linux.arm64`,
+		},
+		// -------------------------------------------------------------------------
+		{
 			name:    "unsupported tool",
 			cliArgs: []string{"toolctl-unsupported-test-tool"},
 			wantErr: true,
@@ -277,7 +328,7 @@ HTTP status: 404
 	}
 
 	for _, tt := range tests {
-		localAPIFS, downloadServer, err := setupLocalAPI()
+		localAPIFS, downloadServer, err := setupLocalAPI(tt.supportedTools)
 		if err != nil {
 			t.Fatal(err)
 		}

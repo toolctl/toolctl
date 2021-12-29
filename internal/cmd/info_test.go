@@ -48,7 +48,14 @@ Global Flags:
 		// -------------------------------------------------------------------------
 		{
 			name:    "no args, supported tool installed",
-			cliArgs: []string{"toolctl-test-tool"},
+			cliArgs: []string{},
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.1",
+					tarGz:   true,
+				},
+			},
 			preinstalledTools: []preinstalledTool{
 				{
 					name: "toolctl-test-tool",

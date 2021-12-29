@@ -94,11 +94,12 @@ type preinstalledTool struct {
 }
 
 type supportedTool struct {
-	name            string
-	version         string
-	tarGz           bool
-	tarGzSubdir     string
-	tarGzBinaryName string
+	name                    string
+	version                 string
+	downloadURLTemplatePath string
+	tarGz                   bool
+	tarGzSubdir             string
+	tarGzBinaryName         string
 }
 
 type test struct {
@@ -220,10 +221,11 @@ func setupRemoteAPI(supportedTools []supportedTool) (
 	return
 }
 
-func setupLocalAPI() (
+func setupLocalAPI(supportedTools []supportedTool) (
 	localAPIFS afero.Fs, downloadServer *httptest.Server, err error,
 ) {
-	downloadServer, _, err = setupDownloadServer()
+	var downloadServerFS afero.Fs
+	downloadServer, downloadServerFS, err = setupDownloadServer()
 	if err != nil {
 		return
 	}
@@ -231,6 +233,21 @@ func setupLocalAPI() (
 	localAPIFS = afero.NewMemMapFs()
 
 	apiFiles := getDefaultAPIFiles(downloadServer.URL)
+
+	// Create the API content for all supported tools
+	for _, supportedTool := range supportedTools {
+		var sha256 string
+		sha256, err = supportedToolToDownloadFile(downloadServerFS, supportedTool)
+		if err != nil {
+			return
+		}
+		apiFiles = append(
+			apiFiles,
+			supportedToolToAPIContents(supportedTool, downloadServer.URL, sha256)...,
+		)
+	}
+
+	// Write the API files
 	for _, f := range apiFiles {
 		err = afero.WriteFile(localAPIFS, f.Path, []byte(f.Contents), 0644)
 		if err != nil {
@@ -572,11 +589,15 @@ echo v`+supportedTool.version+`
 func supportedToolToAPIContents(
 	supportedTool supportedTool, downloadServerURL string, sha256 string,
 ) (apiFiles []APIFile) {
+	if supportedTool.downloadURLTemplatePath == "" {
+		supportedTool.downloadURLTemplatePath = "/{{.OS}}/{{.Arch}}/{{.Version}}/{{.Name}}.tar.gz"
+	}
+
 	return []APIFile{
 		{
 			Path: path.Join(localAPIBasePath, supportedTool.name, "meta.yaml"),
 			Contents: `description: toolctl test tool
-downloadURLTemplate: ` + downloadServerURL + `/{{.OS}}/{{.Arch}}/{{.Version}}/{{.Name}}.tar.gz
+downloadURLTemplate: ` + downloadServerURL + supportedTool.downloadURLTemplatePath + `
 homepage: https://toolctl.io/
 versionArgs: [version, --short]
 `,
