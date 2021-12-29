@@ -31,7 +31,7 @@ func TestAPISyncCmd(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		localAPIFS, downloadServer, err := setupLocalAPI()
+		localAPIFS, downloadServer, err := setupLocalAPI(tt.supportedTools)
 		if err != nil {
 			t.Fatal(err)
 		}
