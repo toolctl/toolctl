@@ -94,13 +94,14 @@ type preinstalledTool struct {
 }
 
 type supportedTool struct {
-	name                    string
-	version                 string
-	binaryVersion           string
-	downloadURLTemplatePath string
-	tarGz                   bool
-	tarGzSubdir             string
-	tarGzBinaryName         string
+	name                          string
+	notSupportedOnCurrentPlatform bool
+	version                       string
+	binaryVersion                 string
+	downloadURLTemplatePath       string
+	tarGz                         bool
+	tarGzSubdir                   string
+	tarGzBinaryName               string
 }
 
 type test struct {
@@ -278,16 +279,6 @@ func getDefaultAPIFiles(downloadServerURL string) []APIFile {
 		{
 			Path: path.Join(localAPIBasePath, "toolctl-test-tool/meta.yaml"),
 			Contents: `description: toolctl test tool
-downloadURLTemplate: ` + downloadServerURL + `/{{.OS}}/{{.Arch}}/{{.Version}}/{{.Name}}
-homepage: https://toolctl.io/
-versionArgs: [version, --short]
-`,
-		},
-
-		// Tool that is supported, but not on the current platform
-		{
-			Path: path.Join(localAPIBasePath, "toolctl-test-tool-unsupported-on-current-platform/meta.yaml"),
-			Contents: `description: Test tool unsupported on current OS/Arch
 downloadURLTemplate: ` + downloadServerURL + `/{{.OS}}/{{.Arch}}/{{.Version}}/{{.Name}}
 homepage: https://toolctl.io/
 versionArgs: [version, --short]
@@ -555,7 +546,7 @@ func supportedToolToAPIContents(
 		supportedTool.downloadURLTemplatePath = "/{{.OS}}/{{.Arch}}/{{.Version}}/{{.Name}}.tar.gz"
 	}
 
-	return []APIFile{
+	apiFiles = []APIFile{
 		{
 			Path: path.Join(localAPIBasePath, supportedTool.name, "meta.yaml"),
 			Contents: `description: toolctl test tool
@@ -564,30 +555,37 @@ homepage: https://toolctl.io/
 versionArgs: [version, --short]
 `,
 		},
-		{
-			Path: path.Join(
-				localAPIBasePath, supportedTool.name, runtime.GOOS+"-"+runtime.GOARCH,
-				"meta.yaml",
-			),
-			Contents: fmt.Sprintf(`version:
+	}
+
+	if !supportedTool.notSupportedOnCurrentPlatform {
+		apiFiles = append(apiFiles,
+			APIFile{
+				Path: path.Join(
+					localAPIBasePath, supportedTool.name, runtime.GOOS+"-"+runtime.GOARCH,
+					"meta.yaml",
+				),
+				Contents: fmt.Sprintf(`version:
   earliest: %s
   latest: %s
 `, supportedTool.version, supportedTool.version),
-		},
-		{
-			Path: path.Join(
-				localAPIBasePath, supportedTool.name, runtime.GOOS+"-"+runtime.GOARCH,
-				supportedTool.version+".yaml",
-			),
-			Contents: fmt.Sprintf(
-				`url: %s/%s/%s/%s/%s.tar.gz
+			},
+			APIFile{
+				Path: path.Join(
+					localAPIBasePath, supportedTool.name, runtime.GOOS+"-"+runtime.GOARCH,
+					supportedTool.version+".yaml",
+				),
+				Contents: fmt.Sprintf(
+					`url: %s/%s/%s/%s/%s.tar.gz
 sha256: %s
 `,
-				downloadServerURL, runtime.GOOS, runtime.GOARCH, supportedTool.version,
-				supportedTool.name, sha256,
-			),
-		},
+					downloadServerURL, runtime.GOOS, runtime.GOARCH, supportedTool.version,
+					supportedTool.name, sha256,
+				),
+			},
+		)
 	}
+
+	return
 }
 
 func runInstallUpgradeTests(

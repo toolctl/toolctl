@@ -22,7 +22,6 @@ func TestAPISyncCmd(t *testing.T) {
 					Path: "meta.yaml",
 					Contents: `tools:
   - toolctl-test-tool
-  - toolctl-test-tool-unsupported-on-current-platform
 `,
 				},
 			},
