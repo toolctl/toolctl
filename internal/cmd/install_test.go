@@ -236,12 +236,20 @@ exit 1
 		// -------------------------------------------------------------------------
 		{
 			name: "supported tool with version mismatch and supported tool",
+			supportedTools: []supportedTool{
+				{
+					name:          "toolctl-test-tool-version-mismatch",
+					version:       "0.1.2",
+					binaryVersion: "0.1.1",
+					tarGz:         true,
+				},
+			},
 			cliArgs: []string{
-				"toolctl-test-tool-version-mismatch", "toolctl-test-tool",
+				"toolctl-test-tool-version-mismatch", "toolctl-other-test-tool",
 			},
 			wantErr: true,
-			wantOut: `[toolctl-test-tool-version-mismatch] 👷 Installing v0.1.0 ...
-Error: installation failed: Expected v0.1.0, but installed v0.2.0
+			wantOut: `[toolctl-test-tool-version-mismatch] 👷 Installing v0.1.2 ...
+Error: installation failed: expected v0.1.2, but installed binary reported v0.1.1
 `,
 		},
 	}

@@ -96,6 +96,7 @@ type preinstalledTool struct {
 type supportedTool struct {
 	name                    string
 	version                 string
+	binaryVersion           string
 	downloadURLTemplatePath string
 	tarGz                   bool
 	tarGzSubdir             string
@@ -292,18 +293,6 @@ homepage: https://toolctl.io/
 versionArgs: [version, --short]
 `,
 		},
-
-		// Tool with version mismatch
-		{
-			Path: path.Join(
-				localAPIBasePath, "toolctl-test-tool-version-mismatch/meta.yaml",
-			),
-			Contents: fmt.Sprintf(`description: toolctl test tool
-downloadURLTemplate: %s/{{.OS}}/{{.Arch}}/{{.Version}}/{{.Name}}
-homepage: https://toolctl.io/
-versionArgs: [version, --short]
-`, downloadServerURL),
-		},
 	}
 
 	for _, os := range []string{"darwin", "linux"} {
@@ -325,27 +314,6 @@ sha256: 69b2af71462f6deb084b9a38e5ffa2446ab1930232a887c2874d42e81bcc21dd`,
 				Path: path.Join(localAPIBasePath, "toolctl-test-tool", os+"-amd64", "0.1.1.yaml"),
 				Contents: `url: ` + downloadServerURL + `/` + os + `/amd64/0.1.1/toolctl-test-tool
 sha256: e05dd45f0c922a9ecc659c9f6234159c9820678c0b70d1ca9e48721a379b2143`,
-			},
-
-			// Tool with version mismatch
-			APIFile{
-				Path: path.Join(
-					localAPIBasePath, "toolctl-test-tool-version-mismatch",
-					os+"-amd64", "meta.yaml",
-				),
-				Contents: `version:
-  earliest: 0.1.0
-  latest: 0.1.0
-`,
-			},
-			APIFile{
-				Path: path.Join(
-					localAPIBasePath, "toolctl-test-tool-version-mismatch",
-					os+"-amd64", "0.1.0.yaml",
-				),
-				Contents: fmt.Sprintf(`url: %s/%s/%s/0.1.0/toolctl-test-tool-version-mismatch
-sha256: ce04245b5e5ef4aa9b4205b61bedb5e2376a83336b3d72318addbc2c45b553c6
-`, downloadServerURL, os, "amd64"),
 			},
 		)
 	}
@@ -389,18 +357,6 @@ echo "v0.1.1"
 			[]byte(`#!/bin/sh
 echo "v0.2.0"
 `),
-			0644,
-		)
-		if err != nil {
-			return
-		}
-
-		err = afero.WriteFile(
-			downloadServerFS,
-			"/"+os+"/amd64/0.1.0/toolctl-test-tool-version-mismatch",
-			[]byte(`#!/bin/sh
-echo "v0.2.0"
-	`),
 			0644,
 		)
 		if err != nil {
@@ -572,17 +528,23 @@ func createTarFile(
 func createBinaryFile(
 	downloadServerFS afero.Fs, supportedTool supportedTool,
 ) (filePath string, err error) {
+	if supportedTool.binaryVersion == "" {
+		supportedTool.binaryVersion = supportedTool.version
+	}
+
 	filePath = "/" + filepath.Join(
 		runtime.GOOS, runtime.GOARCH, supportedTool.version, supportedTool.name,
 	)
+
 	err = afero.WriteFile(
 		downloadServerFS,
 		filePath,
 		[]byte(`#!/bin/sh
-echo v`+supportedTool.version+`
+echo v`+supportedTool.binaryVersion+`
 `),
 		0644,
 	)
+
 	return
 }
 
