@@ -23,7 +23,6 @@ func TestAPISyncCmd(t *testing.T) {
 					Contents: `tools:
   - toolctl-test-tool
   - toolctl-test-tool-unsupported-on-current-platform
-  - toolctl-test-tool-version-mismatch
 `,
 				},
 			},

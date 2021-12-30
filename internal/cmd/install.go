@@ -193,7 +193,7 @@ func install(
 
 	if !installedVersion.Equal(semver.MustParse(tool.Version)) {
 		err = fmt.Errorf(
-			"installation failed: Expected v%s, but installed v%s",
+			"installation failed: expected v%s, but installed binary reported v%s",
 			tool.Version, installedVersion.String(),
 		)
 		return
