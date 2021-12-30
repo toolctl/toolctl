@@ -3,6 +3,7 @@ package cmd_test
 import (
 	"bytes"
 	"os"
+	"runtime"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -184,10 +185,18 @@ $`,
 `,
 		},
 		{
-			name:    "tool unsupported on current platform",
+			name: "tool unsupported on current platform",
+			supportedTools: []supportedTool{
+				{
+					name:                          "toolctl-test-tool-unsupported-on-current-platform",
+					notSupportedOnCurrentPlatform: true,
+					tarGz:                         true,
+				},
+			},
 			cliArgs: []string{"toolctl-test-tool-unsupported-on-current-platform"},
 			wantErr: true,
-			wantOut: `Error: toolctl-test-tool-unsupported-on-current-platform not supported on this platform
+			wantOut: `Error: toolctl-test-tool-unsupported-on-current-platform is currently not supported on this platform (` +
+				runtime.GOOS + `/` + runtime.GOARCH + `)
 `,
 		},
 	}

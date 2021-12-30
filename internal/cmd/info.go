@@ -107,7 +107,10 @@ func info(
 	latestVersion, err = api.GetLatestVersion(toolctlAPI, tool)
 	if err != nil {
 		if errors.Is(err, api.NotFoundError{}) {
-			err = fmt.Errorf("%s not supported on this platform", tool.Name)
+			err = fmt.Errorf(
+				"%s is currently not supported on this platform (%s/%s)",
+				tool.Name, runtime.GOOS, runtime.GOARCH,
+			)
 		}
 		return
 	}
