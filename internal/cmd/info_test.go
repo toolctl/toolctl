@@ -87,15 +87,34 @@ $`,
 		},
 		// -------------------------------------------------------------------------
 		{
-			name:    "multiple supported tools",
-			cliArgs: []string{"toolctl-test-tool", "toolctl-test-tool"},
-			wantOut: `[toolctl-test-tool] ✨ toolctl-test-tool v0.1.1: toolctl test tool
-[toolctl-test-tool] 🏠 https://toolctl.io/
-[toolctl-test-tool] ❌ Not installed
-[toolctl-test-tool] ✨ toolctl-test-tool v0.1.1: toolctl test tool
-[toolctl-test-tool] 🏠 https://toolctl.io/
-[toolctl-test-tool] ❌ Not installed
+			name: "multiple supported tools",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.1",
+					tarGz:   true,
+				},
+				{
+					name:    "toolctl-other-test-tool",
+					version: "0.2.0",
+					tarGz:   true,
+				},
+			},
+			preinstalledTools: []preinstalledTool{
+				{
+					name: "toolctl-test-tool",
+					fileContents: `#!/bin/sh
+echo "v0.1.0"
 `,
+				},
+			},
+			cliArgs: []string{"toolctl-test-tool", "toolctl-other-test-tool"},
+			wantOutRegex: `^\[toolctl-test-tool      \] ✨ toolctl-test-tool v0.1.1: toolctl test tool
+\[toolctl-test-tool      \] 🔄 toolctl-test-tool v0.1.0 is installed at .+
+\[toolctl-other-test-tool\] ✨ toolctl-other-test-tool v0.2.0: toolctl test tool
+\[toolctl-other-test-tool\] 🏠 https://toolctl.io/
+\[toolctl-other-test-tool\] ❌ Not installed
+$`,
 		},
 		// -------------------------------------------------------------------------
 		{
@@ -109,6 +128,13 @@ $`,
 		// -------------------------------------------------------------------------
 		{
 			name: "supported tool, latest version already installed",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.1",
+					tarGz:   true,
+				},
+			},
 			preinstalledTools: []preinstalledTool{
 				{
 					name: "toolctl-test-tool",
@@ -126,6 +152,13 @@ $`,
 		// -------------------------------------------------------------------------
 		{
 			name: "supported tool, other version already installed",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.1",
+					tarGz:   true,
+				},
+			},
 			preinstalledTools: []preinstalledTool{
 				{
 					name: "toolctl-test-tool",
@@ -143,6 +176,13 @@ $`,
 		// -------------------------------------------------------------------------
 		{
 			name: "supported tool, version could not be determined",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.1",
+					tarGz:   true,
+				},
+			},
 			preinstalledTools: []preinstalledTool{
 				{
 					name: "toolctl-test-tool",
@@ -161,6 +201,13 @@ exit 1
 		// -------------------------------------------------------------------------
 		{
 			name: "supported tool symlinked",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.1",
+					tarGz:   true,
+				},
+			},
 			preinstalledTools: []preinstalledTool{
 				{
 					name: "toolctl-test-tool",

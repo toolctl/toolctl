@@ -99,6 +99,7 @@ type supportedTool struct {
 	version                       string
 	binaryVersion                 string
 	downloadURLTemplatePath       string
+	onlyOnDownloadServer          bool
 	tarGz                         bool
 	tarGzSubdir                   string
 	tarGzBinaryName               string
@@ -169,16 +170,15 @@ func setupRemoteAPI(supportedTools []supportedTool) (
 	downloadServer *httptest.Server, err error,
 ) {
 	var downloadServerFS afero.Fs
-	downloadServer, downloadServerFS, err = setupDownloadServer()
+	downloadServerFS, downloadServer, err = setupDownloadServer()
 	if err != nil {
 		return
 	}
 
 	localAPIFS := afero.NewMemMapFs()
 
-	apiFiles := getDefaultAPIFiles(downloadServer.URL)
-
 	// Create the API content for all supported tools
+	var apiFiles []APIFile
 	supportedToolNames := make([]string, len(supportedTools))
 	for _, supportedTool := range supportedTools {
 		var sha256 string
@@ -186,10 +186,14 @@ func setupRemoteAPI(supportedTools []supportedTool) (
 		if err != nil {
 			return
 		}
-		apiFiles = append(
-			apiFiles,
-			supportedToolToAPIContents(supportedTool, downloadServer.URL, sha256)...,
-		)
+
+		if !supportedTool.onlyOnDownloadServer {
+			apiFiles = append(
+				apiFiles,
+				supportedToolToAPIContents(supportedTool, downloadServer.URL, sha256)...,
+			)
+		}
+
 		supportedToolNames = append(supportedToolNames, supportedTool.name)
 	}
 
@@ -223,29 +227,45 @@ func setupRemoteAPI(supportedTools []supportedTool) (
 	return
 }
 
-func setupLocalAPI(supportedTools []supportedTool) (
+func setupLocalAPI(supportedTools []supportedTool, createTopLevelMeta bool) (
 	localAPIFS afero.Fs, downloadServer *httptest.Server, err error,
 ) {
 	var downloadServerFS afero.Fs
-	downloadServer, downloadServerFS, err = setupDownloadServer()
+	downloadServerFS, downloadServer, err = setupDownloadServer()
 	if err != nil {
 		return
 	}
 
 	localAPIFS = afero.NewMemMapFs()
 
-	apiFiles := getDefaultAPIFiles(downloadServer.URL)
-
 	// Create the API content for all supported tools
+	var apiFiles []APIFile
+	supportedToolNames := make([]string, len(supportedTools))
 	for _, supportedTool := range supportedTools {
 		var sha256 string
 		sha256, err = supportedToolToDownloadFile(downloadServerFS, supportedTool)
 		if err != nil {
 			return
 		}
+
+		if !supportedTool.onlyOnDownloadServer {
+			apiFiles = append(
+				apiFiles,
+				supportedToolToAPIContents(supportedTool, downloadServer.URL, sha256)...,
+			)
+		}
+
+		supportedToolNames = append(supportedToolNames, supportedTool.name)
+	}
+
+	// Create the top-level API content that holds the list of all supported tools
+	if createTopLevelMeta {
 		apiFiles = append(
 			apiFiles,
-			supportedToolToAPIContents(supportedTool, downloadServer.URL, sha256)...,
+			APIFile{
+				Path:     path.Join(localAPIBasePath, "meta.yaml"),
+				Contents: "tools:\n  - " + strings.Join(supportedToolNames, "\n  - ") + "\n",
+			},
 		)
 	}
 
@@ -265,100 +285,16 @@ type APIFile struct {
 	Contents string
 }
 
-func getDefaultAPIFiles(downloadServerURL string) []APIFile {
-	apiFiles := []APIFile{
-		// List of supported tools
-		{
-			Path: path.Join(localAPIBasePath, "meta.yaml"),
-			Contents: `tools:
-  - toolctl-test-tool
-`,
-		},
-
-		// Supported tool
-		{
-			Path: path.Join(localAPIBasePath, "toolctl-test-tool/meta.yaml"),
-			Contents: `description: toolctl test tool
-downloadURLTemplate: ` + downloadServerURL + `/{{.OS}}/{{.Arch}}/{{.Version}}/{{.Name}}
-homepage: https://toolctl.io/
-versionArgs: [version, --short]
-`,
-		},
-	}
-
-	for _, os := range []string{"darwin", "linux"} {
-		apiFiles = append(apiFiles,
-			// Supported tool
-			APIFile{
-				Path: path.Join(localAPIBasePath, "toolctl-test-tool", os+"-amd64", "meta.yaml"),
-				Contents: `version:
-  earliest: 0.1.0
-  latest: 0.1.1
-`,
-			},
-			APIFile{
-				Path: path.Join(localAPIBasePath, "toolctl-test-tool", os+"-amd64", "0.1.0.yaml"),
-				Contents: `url: ` + downloadServerURL + `/` + os + `/amd64/0.1.0/toolctl-test-tool
-sha256: 69b2af71462f6deb084b9a38e5ffa2446ab1930232a887c2874d42e81bcc21dd`,
-			},
-			APIFile{
-				Path: path.Join(localAPIBasePath, "toolctl-test-tool", os+"-amd64", "0.1.1.yaml"),
-				Contents: `url: ` + downloadServerURL + `/` + os + `/amd64/0.1.1/toolctl-test-tool
-sha256: e05dd45f0c922a9ecc659c9f6234159c9820678c0b70d1ca9e48721a379b2143`,
-			},
-		)
-	}
-
-	return apiFiles
-}
-
 func setupDownloadServer() (
-	downloadServer *httptest.Server, downloadServerFS afero.Fs, err error,
+	downloadServerFS afero.Fs, downloadServer *httptest.Server, err error,
 ) {
 	downloadServerFS = afero.NewMemMapFs()
 
-	for _, os := range []string{"darwin", "linux"} {
-		err = afero.WriteFile(
-			downloadServerFS,
-			"/"+os+"/amd64/0.1.0/toolctl-test-tool",
-			[]byte(`#!/bin/sh
-echo "v0.1.0"
-`),
-			0644,
-		)
-		if err != nil {
-			return
-		}
-
-		err = afero.WriteFile(
-			downloadServerFS,
-			"/"+os+"/amd64/0.1.1/toolctl-test-tool",
-			[]byte(`#!/bin/sh
-echo "v0.1.1"
-`),
-			0644,
-		)
-		if err != nil {
-			return
-		}
-
-		err = afero.WriteFile(
-			downloadServerFS,
-			"/"+os+"/amd64/0.2.0/toolctl-test-tool",
-			[]byte(`#!/bin/sh
-echo "v0.2.0"
-`),
-			0644,
-		)
-		if err != nil {
-			return
-		}
-	}
-
-	downloadFileServer := http.FileServer(
-		afero.NewHttpFs(downloadServerFS).Dir("/"),
+	downloadServer = httptest.NewServer(
+		http.FileServer(
+			afero.NewHttpFs(downloadServerFS).Dir("/"),
+		),
 	)
-	downloadServer = httptest.NewServer(downloadFileServer)
 
 	return
 }
