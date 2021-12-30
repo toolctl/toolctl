@@ -14,13 +14,26 @@ import (
 func TestAPISyncCmd(t *testing.T) {
 	tests := []test{
 		{
-			name:         "should work",
+			name: "should work",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.0",
+					tarGz:   true,
+				},
+				{
+					name:    "toolctl-other-test-tool",
+					version: "0.2.0",
+					tarGz:   true,
+				},
+			},
 			cliArgs:      []string{},
 			wantOutRegex: "^$",
 			wantFiles: []APIFile{
 				{
 					Path: "meta.yaml",
 					Contents: `tools:
+  - toolctl-other-test-tool
   - toolctl-test-tool
 `,
 				},
@@ -29,9 +42,16 @@ func TestAPISyncCmd(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		localAPIFS, downloadServer, err := setupLocalAPI(tt.supportedTools)
+		localAPIFS, downloadServer, err := setupLocalAPI(tt.supportedTools, false)
 		if err != nil {
 			t.Fatal(err)
+		}
+
+		for _, file := range tt.wantFiles {
+			_, err := localAPIFS.Stat(filepath.Join(localAPIBasePath, file.Path))
+			if err == nil {
+				t.Fatalf("%s: file %s already exists", tt.name, file.Path)
+			}
 		}
 
 		t.Run(tt.name, func(t *testing.T) {

@@ -37,7 +37,14 @@ Global Flags:
 		},
 		// -------------------------------------------------------------------------
 		{
-			name:    "supported tool",
+			name: "supported tool",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.1",
+					tarGz:   true,
+				},
+			},
 			cliArgs: []string{"toolctl-test-tool"},
 			wantOut: `👷 Installing v0.1.1 ...
 🎉 Successfully installed
@@ -113,7 +120,14 @@ Global Flags:
 		},
 		// -------------------------------------------------------------------------
 		{
-			name:    "supported tool with supported version",
+			name: "supported tool with supported version",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.0",
+					tarGz:   true,
+				},
+			},
 			cliArgs: []string{"toolctl-test-tool@0.1.0"},
 			wantOut: `👷 Installing v0.1.0 ...
 🎉 Successfully installed
@@ -121,7 +135,19 @@ Global Flags:
 		},
 		// -------------------------------------------------------------------------
 		{
-			name:    "multiple supported tools",
+			name: "multiple supported tools",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.0",
+					tarGz:   true,
+				},
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.1",
+					tarGz:   true,
+				},
+			},
 			cliArgs: []string{"toolctl-test-tool@0.1.0", "toolctl-test-tool@0.1.1"},
 			wantOut: `[toolctl-test-tool] 👷 Installing v0.1.0 ...
 [toolctl-test-tool] 🎉 Successfully installed
@@ -131,7 +157,14 @@ Global Flags:
 		},
 		// -------------------------------------------------------------------------
 		{
-			name:    "supported tool with unsupported version",
+			name: "supported tool with unsupported version",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.0",
+					tarGz:   true,
+				},
+			},
 			cliArgs: []string{"toolctl-test-tool@1.0.0"},
 			wantErr: true,
 			wantOut: `👷 Installing v1.0.0 ...
@@ -149,7 +182,14 @@ $`,
 		},
 		// -------------------------------------------------------------------------
 		{
-			name:                "install dir not in path",
+			name: "install dir not in path",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.1",
+					tarGz:   true,
+				},
+			},
 			cliArgs:             []string{"toolctl-test-tool"},
 			installDirNotInPath: true,
 			wantOutRegex: `^🚨 .+toolctl-test-install-\d+ is not in \$PATH
@@ -170,6 +210,13 @@ $`,
 		// -------------------------------------------------------------------------
 		{
 			name: "supported tool, latest version already installed",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.1",
+					tarGz:   true,
+				},
+			},
 			preinstalledTools: []preinstalledTool{
 				{
 					name: "toolctl-test-tool",
@@ -186,6 +233,13 @@ echo "v0.1.1"
 		// -------------------------------------------------------------------------
 		{
 			name: "supported tool, other version already installed",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.1",
+					tarGz:   true,
+				},
+			},
 			preinstalledTools: []preinstalledTool{
 				{
 					name: "toolctl-test-tool",
@@ -202,6 +256,13 @@ echo "v0.1.0"
 		// -------------------------------------------------------------------------
 		{
 			name: "supported tool, version could not be determined",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.0",
+					tarGz:   true,
+				},
+			},
 			preinstalledTools: []preinstalledTool{
 				{
 					name: "toolctl-test-tool",

@@ -33,7 +33,7 @@ Use "toolctl api [command] --help" for more information about a command.
 	}
 
 	for _, tt := range tests {
-		localAPIFS, downloadServer, err := setupLocalAPI(tt.supportedTools)
+		localAPIFS, downloadServer, err := setupLocalAPI(tt.supportedTools, true)
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -58,6 +58,13 @@ echo "v0.1.0"
 		// -------------------------------------------------------------------------
 		{
 			name: "supported tool",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.1",
+					tarGz:   true,
+				},
+			},
 			preinstalledTools: []preinstalledTool{
 				{
 					name: "toolctl-test-tool",
@@ -85,6 +92,18 @@ echo "v0.1.0"
 		// -------------------------------------------------------------------------
 		{
 			name: "multiple supported tools",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.1",
+					tarGz:   true,
+				},
+				{
+					name:    "toolctl-other-test-tool",
+					version: "0.2.0",
+					tarGz:   true,
+				},
+			},
 			preinstalledTools: []preinstalledTool{
 				{
 					name: "toolctl-test-tool",
@@ -92,18 +111,31 @@ echo "v0.1.0"
 echo "v0.1.0"
 `,
 				},
+				{
+					name: "toolctl-other-test-tool",
+					fileContents: `#!/bin/sh
+echo "v0.2.0"
+`,
+				},
 			},
-			cliArgs: []string{"toolctl-test-tool", "toolctl-test-tool"},
-			wantOut: `[toolctl-test-tool] 👷 Upgrading from v0.1.0 to v0.1.1 ...
-[toolctl-test-tool] 👷 Removing v0.1.0 ...
-[toolctl-test-tool] 👷 Installing v0.1.1 ...
-[toolctl-test-tool] 🎉 Successfully installed
-[toolctl-test-tool] ✅ already up-to-date
+			cliArgs: []string{"toolctl-test-tool", "toolctl-other-test-tool"},
+			wantOut: `[toolctl-test-tool      ] 👷 Upgrading from v0.1.0 to v0.1.1 ...
+[toolctl-test-tool      ] 👷 Removing v0.1.0 ...
+[toolctl-test-tool      ] 👷 Installing v0.1.1 ...
+[toolctl-test-tool      ] 🎉 Successfully installed
+[toolctl-other-test-tool] ✅ already up-to-date
 `,
 		},
 		// -------------------------------------------------------------------------
 		{
 			name: "supported tool, latest version already installed",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.1",
+					tarGz:   true,
+				},
+			},
 			preinstalledTools: []preinstalledTool{
 				{
 					name: "toolctl-test-tool",
@@ -118,7 +150,14 @@ echo "v0.1.1"
 		},
 		// -------------------------------------------------------------------------
 		{
-			name:    "supported tool, not installed",
+			name: "supported tool, not installed",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.1",
+					tarGz:   true,
+				},
+			},
 			cliArgs: []string{"toolctl-test-tool"},
 			wantErr: true,
 			wantOut: `Error: toolctl-test-tool is not installed
@@ -127,6 +166,13 @@ echo "v0.1.1"
 		// -------------------------------------------------------------------------
 		{
 			name: "supported tool, symlinked",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.1",
+					tarGz:   true,
+				},
+			},
 			preinstalledTools: []preinstalledTool{
 				{
 					name: "toolctl-test-tool",
@@ -154,6 +200,13 @@ $`,
 		{
 			name:                       "supported tool, installed not in install dir",
 			installDirNotPreinstallDir: true,
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.1",
+					tarGz:   true,
+				},
+			},
 			preinstalledTools: []preinstalledTool{
 				{
 					name: "toolctl-test-tool",
