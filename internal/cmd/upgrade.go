@@ -43,8 +43,17 @@ func newRunUpgrade(
 			return err
 		}
 
-		// If no args were specified, upgrade all installed tools
-		if len(args) == 0 {
+		allTools, err := ArgsToTools(args, runtime.GOOS, runtime.GOARCH, false)
+		if err != nil {
+			// The user specified a tool version
+			return fmt.Errorf(
+				"%w, try this instead:\n  toolctl upgrade %s",
+				err, strings.Join(stripVersionsFromArgs(args), " "),
+			)
+		}
+
+		// If no tools were specified, upgrade all installed tools
+		if len(allTools) == 0 {
 			// Get the list of all tools
 			var meta api.Meta
 			meta, err = api.GetMeta(toolctlAPI)
@@ -65,18 +74,15 @@ func newRunUpgrade(
 				}
 			}
 
-			args = installedToolNames
-		}
-
-		allTools, err := ArgsToTools(args, runtime.GOOS, runtime.GOARCH, false)
-		if err != nil {
-			return fmt.Errorf(
-				"%w, try this instead:\n  toolctl upgrade %s",
-				err, strings.Join(stripVersionsFromArgs(args), " "),
+			allTools, err = ArgsToTools(
+				installedToolNames, runtime.GOOS, runtime.GOARCH, false,
 			)
+			if err != nil {
+				return
+			}
 		}
 
-		installDir, err := checkInstallDir(toolctlWriter, allTools, "upgrade")
+		installDir, err := checkInstallDir(toolctlWriter, "upgrade", args)
 		if err != nil {
 			return
 		}

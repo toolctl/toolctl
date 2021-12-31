@@ -55,7 +55,7 @@ func newRunInstall(
 			return err
 		}
 
-		installDir, err := checkInstallDir(toolctlWriter, allTools, "install")
+		installDir, err := checkInstallDir(toolctlWriter, "install", args)
 		if err != nil {
 			return
 		}
@@ -72,7 +72,7 @@ func newRunInstall(
 }
 
 func checkInstallDir(
-	toolctlWriter io.Writer, allTools []api.Tool, installOrUpgrade string,
+	toolctlWriter io.Writer, installOrUpgrade string, args []string,
 ) (installDir string, err error) {
 	installDir, err = utils.RequireConfigString("InstallDir")
 	if err != nil {
@@ -93,10 +93,16 @@ func checkInstallDir(
 		if err != nil {
 			return
 		}
-		err = fmt.Errorf("%s is not writable by user %s, try running:\n  sudo toolctl %s %s",
+
+		joinedArgs := strings.Join(args, " ")
+		if joinedArgs != "" {
+			joinedArgs = " " + joinedArgs
+		}
+		err = fmt.Errorf("%s is not writable by user %s, try running:\n  sudo toolctl %s%s",
 			wrapInQuotesIfContainsSpace(installDir), currentUser.Username,
-			installOrUpgrade, toolsToArgs(allTools),
+			installOrUpgrade, joinedArgs,
 		)
+
 		return
 	}
 

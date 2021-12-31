@@ -590,6 +590,7 @@ func runInstallUpgradeTests(
 		os.Setenv("PATH", originalPathEnv)
 
 		if !cmp.Equal(tt.preinstalledTools, []preinstalledTool{}) {
+			_ = os.Chmod(preinstallTempDir, 0700)
 			err = os.RemoveAll(preinstallTempDir)
 			if err != nil {
 				t.Fatal(err)
