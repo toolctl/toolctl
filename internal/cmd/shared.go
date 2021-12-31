@@ -223,25 +223,6 @@ func stripVersionsFromArgs(args []string) []string {
 	return strippedArgs
 }
 
-// toolToArg converts a tool to a command line argument.
-func toolToArg(tool api.Tool) (arg string) {
-	arg = tool.Name
-	if tool.Version != "" {
-		arg += "@" + tool.Version
-	}
-	return
-}
-
-// toolsToArgs converts a list of tools to a list of command line arguments.
-func toolsToArgs(tools []api.Tool) (args string) {
-	argsSlice := make([]string, len(tools))
-	for i, tool := range tools {
-		argsSlice[i] = toolToArg(tool)
-	}
-	args = strings.Join(argsSlice, " ")
-	return
-}
-
 func which(toolName string) (path string, err error) {
 	which := exec.Command("which", toolName)
 	out, err := which.Output()

@@ -188,12 +188,52 @@ $`,
 		},
 		// -------------------------------------------------------------------------
 		{
-			name:                  "install dir not writable",
-			cliArgs:               []string{"a-tool", "another-tool"},
+			name: "install dir not writable, no tools specified",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.1",
+					tarGz:   true,
+				},
+			},
+			preinstalledTools: []preinstalledTool{
+				{
+					name: "toolctl-test-tool",
+					fileContents: `#!/bin/sh
+echo "v0.1.0"
+`,
+				},
+			},
+			cliArgs:               []string{},
 			installDirNotWritable: true,
 			wantErr:               true,
 			wantOutRegex: `^Error: .+toolctl-test-install-\d+ is not writable by user .+, try running:
-  sudo toolctl upgrade a-tool another-tool
+  sudo toolctl upgrade
+$`,
+		},
+		// -------------------------------------------------------------------------
+		{
+			name: "install dir not writable, tool specified",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.1",
+					tarGz:   true,
+				},
+			},
+			preinstalledTools: []preinstalledTool{
+				{
+					name: "toolctl-test-tool",
+					fileContents: `#!/bin/sh
+echo "v0.1.0"
+`,
+				},
+			},
+			cliArgs:               []string{"toolctl-test-tool"},
+			installDirNotWritable: true,
+			wantErr:               true,
+			wantOutRegex: `^Error: .+toolctl-test-install-\d+ is not writable by user .+, try running:
+  sudo toolctl upgrade toolctl-test-tool
 $`,
 		},
 		// -------------------------------------------------------------------------
