@@ -113,19 +113,28 @@ func discover(
 
 	// Parse the URL template
 	funcMap := template.FuncMap{
-		"DefaultAMD64": func(in string) string {
+		"AMD64Bit": func(in string) string {
+			return strings.Replace(in, "amd64", "64bit", 1)
+		},
+		"AMD64Default": func(in string) string {
 			return strings.Replace(in, "amd64", "", 1)
 		},
-		"MacOS": func(in string) string {
-			return strings.Replace(in, "darwin", "macOS", 1)
-		},
-		"Title": strings.Title,
-		"X64": func(in string) string {
+		"AMD64X64": func(in string) string {
 			return strings.Replace(in, "amd64", "x64", 1)
 		},
-		"X86_64": func(in string) string {
+		"AMD64X86_64": func(in string) string {
 			return strings.Replace(in, "amd64", "x86_64", 1)
 		},
+		"ARMUpper": func(in string) string {
+			return strings.Replace(in, "arm", "ARM", 1)
+		},
+		"DarwinMacOS": func(in string) string {
+			return strings.Replace(in, "darwin", "macOS", 1)
+		},
+		"LinuxTitle": func(in string) string {
+			return strings.Replace(in, "linux", "Linux", 1)
+		},
+		"Title": strings.Title,
 	}
 	downloadURLTemplate, err := template.New("URL").Funcs(funcMap).Parse(toolMeta.DownloadURLTemplate)
 	if err != nil {
@@ -221,7 +230,7 @@ func discoverLoop(
 			continue
 		}
 
-		time.Sleep(1 * time.Second)
+		time.Sleep(500 * time.Millisecond)
 	}
 }
 

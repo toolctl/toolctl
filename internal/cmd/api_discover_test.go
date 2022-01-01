@@ -150,13 +150,13 @@ Global Flags:
 		},
 		// -------------------------------------------------------------------------
 		{
-			name:    "DefaultAMD64 template function",
+			name:    "AMD64Default template function",
 			cliArgs: []string{"toolctl-test-tool-template-func"},
 			supportedTools: []supportedTool{
 				{
 					name:                    "toolctl-test-tool-template-func",
 					version:                 "0.1.0",
-					downloadURLTemplatePath: "/v{{.Version}}/{{.Name}}-v{{.Version}}.{{.OS}}{{.Arch | DefaultAMD64 }}",
+					downloadURLTemplatePath: "/v{{.Version}}/{{.Name}}-v{{.Version}}.{{.OS}}{{.Arch | AMD64Default}}",
 					tarGz:                   true,
 				},
 			},
@@ -167,13 +167,13 @@ URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.linuxarm64`,
 		},
 		// -------------------------------------------------------------------------
 		{
-			name:    "MacOS and X64 template functions",
+			name:    "DarwinMacOS and AMD64X64 template functions",
 			cliArgs: []string{"toolctl-test-tool-template-func"},
 			supportedTools: []supportedTool{
 				{
 					name:                    "toolctl-test-tool-template-func",
 					version:                 "0.1.0",
-					downloadURLTemplatePath: "/v{{.Version}}/{{.Name}}-v{{.Version}}.{{.OS | MacOS}}.{{.Arch | X64}}",
+					downloadURLTemplatePath: "/v{{.Version}}/{{.Name}}-v{{.Version}}.{{.OS | DarwinMacOS}}.{{.Arch | AMD64X64}}",
 					tarGz:                   true,
 				},
 			},
@@ -184,19 +184,36 @@ URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.linux.arm64`,
 		},
 		// -------------------------------------------------------------------------
 		{
-			name:    "X86_64 and Title template functions",
+			name:    "AMD64X86_64, ARMUpper and Title template functions",
 			cliArgs: []string{"toolctl-test-tool-template-func"},
 			supportedTools: []supportedTool{
 				{
 					name:                    "toolctl-test-tool-template-func",
 					version:                 "0.1.0",
-					downloadURLTemplatePath: "/v{{.Version}}/{{.Name}}-v{{.Version}}.{{.OS | Title}}.{{.Arch | X86_64}}",
+					downloadURLTemplatePath: "/v{{.Version}}/{{.Name}}-v{{.Version}}.{{.OS | Title}}.{{.Arch | AMD64X86_64 | ARMUpper}}",
 					tarGz:                   true,
 				},
 			},
 			wantOutRegex: `(?s)URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.Darwin.x86_64.+
-URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.Darwin.arm64.+
+URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.Darwin.ARM64.+
 URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.Linux.x86_64.+
+URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.Linux.ARM64`,
+		},
+		// -------------------------------------------------------------------------
+		{
+			name:    "AMD64Bit and LinuxTitle template functions",
+			cliArgs: []string{"toolctl-test-tool-template-func"},
+			supportedTools: []supportedTool{
+				{
+					name:                    "toolctl-test-tool-template-func",
+					version:                 "0.1.0",
+					downloadURLTemplatePath: "/v{{.Version}}/{{.Name}}-v{{.Version}}.{{.OS | LinuxTitle}}.{{.Arch | AMD64Bit}}",
+					tarGz:                   true,
+				},
+			},
+			wantOutRegex: `(?s)URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.darwin.64bit.+
+URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.darwin.arm64.+
+URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.Linux.64bit.+
 URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.Linux.arm64`,
 		},
 		// -------------------------------------------------------------------------
