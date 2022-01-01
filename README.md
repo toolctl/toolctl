@@ -84,6 +84,7 @@ Currently, `toolctl` supports the following tools:
 - [gh](https://cli.github.com/): GitHub's official command line tool
 - [golangci-lint](https://golangci-lint.run/): Fast linters runner for Go
 - [helm](https://helm.sh/): The Kubernetes package manager
+- [hugo](https://gohugo.io/): The world's fastest framework for building websites
 - [k9s](https://k9scli.io/): Kubernetes CLI to manage your clusters in style
 - [kubectl](https://kubernetes.io/docs/reference/kubectl/): The Kubernetes command-line tool
 - [kubectx](https://github.com/ahmetb/kubectx): Faster way to switch between Kubernetes contexts
