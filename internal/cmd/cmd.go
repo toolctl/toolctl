@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/afero"
@@ -35,20 +36,20 @@ func init() {
 
 // initConfig reads in the config file if it exists.
 func initConfig() {
+	home, err := homedir.Dir()
+	cobra.CheckErr(err)
+
 	viper.SetDefault("RemoteAPIBaseURL", "https://raw.githubusercontent.com/toolctl/api/main/v0/")
-	viper.SetDefault("InstallDir", "/usr/local/bin")
+	viper.SetDefault("InstallDir", filepath.Join(home, ".local", "bin"))
 
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
 	} else {
-		home, err := homedir.Dir()
-		cobra.CheckErr(err)
-
 		viper.AddConfigPath(home + "/.config/toolctl")
 		viper.SetConfigName("config")
 	}
 
-	err := viper.ReadInConfig()
+	err = viper.ReadInConfig()
 	if err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			log.Fatalf("Error reading config file: %s", err)
