@@ -30,9 +30,9 @@ You can [download the latest version of toolctl](https://github.com/toolctl/tool
 ```text
 ❯ toolctl info
 [k9s      ] ✨ k9s v0.25.8: Kubernetes CLI to manage your clusters in style
-[k9s      ] ✅ k9s v0.25.8 is installed at /usr/local/bin/k9s
+[k9s      ] ✅ k9s v0.25.8 is installed at /home/adent/.local/bin/k9s
 [kubectl  ] ✨ kubectl v1.23.0: The Kubernetes command-line tool
-[kubectl  ] 🔄 kubectl v1.21.2 is installed at /usr/local/bin/kubectl
+[kubectl  ] 🔄 kubectl v1.21.2 is installed at /home/adent/.local/bin/kubectl
 ```
 
 #### Info about a specific tool
