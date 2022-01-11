@@ -14,7 +14,7 @@
 ### Automatic
 
 ```shell
-sudo bash -c "$(curl -fsSL https://toolctl.io/install)"
+curl -fsSL https://toolctl.io/install | sh
 ```
 
 ### Manual
