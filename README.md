@@ -108,7 +108,7 @@ In general, `toolctl` currently supports any tool that:
 ✔ consists of a single executable file\
 ✔ has no external dependencies\
 ✔ runs on Linux and/or macOS\
-✔ includes a version command or flag\
+✔ includes a command or flag to print its [semantic version](https://semver.org/)\
 ✔ provides its source code and precompiled binaries online under a free and open source license
 
 If you know a tool that fits all of these criteria, please [open an issue](https://github.com/toolctl/toolctl/issues/new) and let us know!
