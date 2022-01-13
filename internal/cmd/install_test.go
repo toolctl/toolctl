@@ -152,7 +152,7 @@ Global Flags:
 			wantOut: `[toolctl-test-tool] 👷 Installing v0.1.0 ...
 [toolctl-test-tool] 🎉 Successfully installed
 [toolctl-test-tool] 🤷 v0.1.0 is already installed
-[toolctl-test-tool] 💁 For more details run: toolctl info toolctl-test-tool
+[toolctl-test-tool] 💁 For more details, run: toolctl info toolctl-test-tool
 `,
 		},
 		// -------------------------------------------------------------------------
@@ -227,7 +227,7 @@ echo "v0.1.1"
 			},
 			cliArgs: []string{"toolctl-test-tool"},
 			wantOut: `🤷 v0.1.1 (the latest version) is already installed
-💁 For more details run: toolctl info toolctl-test-tool
+💁 For more details, run: toolctl info toolctl-test-tool
 `,
 		},
 		// -------------------------------------------------------------------------
@@ -250,7 +250,7 @@ echo "v0.1.0"
 			},
 			cliArgs: []string{"toolctl-test-tool"},
 			wantOut: `🤷 v0.1.0 is already installed
-💁 For more details run: toolctl info toolctl-test-tool
+💁 For more details, run: toolctl info toolctl-test-tool
 `,
 		},
 		// -------------------------------------------------------------------------
@@ -275,7 +275,7 @@ exit 1
 			cliArgs: []string{"toolctl-test-tool"},
 			wantErr: false,
 			wantOut: `🤷 Unknown version is already installed
-💁 For more details run: toolctl info toolctl-test-tool
+💁 For more details, run: toolctl info toolctl-test-tool
 `,
 		},
 		// -------------------------------------------------------------------------

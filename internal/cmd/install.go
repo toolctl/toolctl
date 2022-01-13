@@ -236,7 +236,7 @@ func infoPrintInstalledVersion(
 		fmt.Fprintln(
 			toolctlWriter,
 			prependToolName(
-				tool, allTools, "💁 For more details run: toolctl info "+tool.Name,
+				tool, allTools, "💁 For more details, run: toolctl info "+tool.Name,
 			),
 		)
 		err = nil
@@ -257,7 +257,7 @@ func infoPrintInstalledVersion(
 	fmt.Fprintln(
 		toolctlWriter,
 		prependToolName(
-			tool, allTools, "💁 For more details run: toolctl info "+tool.Name,
+			tool, allTools, "💁 For more details, run: toolctl info "+tool.Name,
 		),
 	)
 
