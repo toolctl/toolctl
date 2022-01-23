@@ -185,10 +185,16 @@ func install(
 
 	// Install the tool
 	installPath := filepath.Join(installDir, tool.Name)
-	err = os.Rename(extractedToolPath, installPath)
+    err = utils.MoveFile(extractedToolPath, installPath)
 	if err != nil {
 		return
 	}
+
+    //⋅Set⋅file⋅permissions⋅to⋅be⋅executable
+    err = utils.SetPermissions(installPath)
+    if err != nil {
+        return
+    }
 
 	installedVersion, err := getToolBinaryVersion(
 		installPath, toolMeta.VersionArgs,
