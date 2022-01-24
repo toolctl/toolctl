@@ -1,11 +1,8 @@
 package utils_test
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -16,97 +13,100 @@ var (
 	content = "this is a dummy file"
 )
 
-// Generates a random file path for the tests
-func generateFilePath() string {
-	b := make([]byte, 10)
-	if _, err := rand.Read(b); err != nil {
-		return ""
-	}
-	return "/tmp/toolctl_" + hex.EncodeToString(b) + ".test"
-}
-
-// Creates a dummy test file for the tests
-func createDummyFile() (string, error) {
-	path := generateFilePath()
-	file, err := os.Create(path)
+func createOriginFile() (*os.File, error) {
+	file, err := os.CreateTemp("/tmp", "toolctl_origin_")
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer file.Close()
 	file.WriteString(content)
-	return path, nil
+
+	return file, nil
 }
 
-// removes all created files in the tests
-func cleanup() {
-	files, err := filepath.Glob("/tmp/toolctl_*.test")
+func createEmptyfile() (*os.File, error) {
+	file, err := os.CreateTemp("/tmp", "toolctl_dest_")
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	for _, f := range files {
-		if err := os.Remove(f); err != nil {
-			panic(err)
-		}
-	}
+	defer file.Close()
+
+	return file, nil
+
 }
 
 // TestCopyFile tests if a file is correctly copied from source to destination
 func TestCopyFile(t *testing.T) {
-	sourceFilePath, err := createDummyFile()
+	// Create origin file
+	sourceFilePath, err := createOriginFile()
 	if err != nil {
 		t.Errorf("failed to create the source file")
 	}
-	destFilePath := generateFilePath()
-	err = utils.CopyFile(sourceFilePath, destFilePath)
+	defer os.Remove(sourceFilePath.Name())
+
+	// Create destination file and copy content from the original file
+	destFilePath, _ := createEmptyfile()
+	err = utils.CopyFile(sourceFilePath.Name(), destFilePath.Name())
 	if err != nil {
 		t.Errorf("failed to copy file to destination")
 	}
+	defer os.Remove(destFilePath.Name())
 
-	destFileContent, err := ioutil.ReadFile(destFilePath)
+	// Read destination file content
+	destFileContent, err := ioutil.ReadFile(destFilePath.Name())
 	if err != nil {
 		t.Errorf("failed to open destination file")
 	}
+
+	// Compare the two files content
 	if strings.Compare(content, string(destFileContent)) != 0 {
 		t.Errorf("copied file content doesn't match the original")
 	}
-	cleanup()
 }
 
 // TestMoveFile tests if a file is correctly moved from source to destination
 func TestMoveFile(t *testing.T) {
-	sourceFilePath, err := createDummyFile()
+	// Create origin file
+	sourceFilePath, err := createOriginFile()
 	if err != nil {
 		t.Errorf("failed to create the source file")
 	}
-	destFilePath := generateFilePath()
-	err = utils.MoveFile(sourceFilePath, destFilePath)
+	defer os.Remove(sourceFilePath.Name())
+
+	// Create destination file
+	destFilePath, _ := createEmptyfile()
+
+	// Move the original file to the destination path
+	err = utils.MoveFile(sourceFilePath.Name(), destFilePath.Name())
 	if err != nil {
 		t.Errorf("failed to move file to destination")
 	}
 
-	if _, err := os.Stat(sourceFilePath); os.IsExist(err) {
+	// Check if the original file was removed
+	if _, err := os.Stat(sourceFilePath.Name()); os.IsExist(err) {
 		t.Error("original file was note removed")
 	}
 
-	destFileContent, err := ioutil.ReadFile(destFilePath)
+	// Read destination file content
+	destFileContent, err := ioutil.ReadFile(destFilePath.Name())
 	if err != nil {
 		t.Errorf("failed to open destination file")
 	}
+
+	// Compare the two files content
 	if strings.Compare(content, string(destFileContent)) != 0 {
 		t.Errorf("copied file content doesn't match the original")
 	}
-
-	cleanup()
 }
 
 func TestSetPermissions(t *testing.T) {
-	file, err := createDummyFile()
+	file, err := createEmptyfile()
 	if err != nil {
 		t.Errorf("failed to create the file")
 	}
-	utils.SetPermissions(file)
+	utils.SetPermissions(file.Name())
 
-	stats, err := os.Stat(file)
+	stats, err := os.Stat(file.Name())
 	if err != nil {
 		t.Errorf("failed to read file permissions")
 	}
@@ -114,6 +114,4 @@ func TestSetPermissions(t *testing.T) {
 	if stats.Mode() != 0755 {
 		t.Errorf("permissions not set correctly")
 	}
-
-	cleanup()
 }

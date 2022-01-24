@@ -13,18 +13,17 @@ func CopyFile(src, dest string) error {
 	if err != nil {
 		return fmt.Errorf("error opening source file: %s", err)
 	}
+	defer srcFile.Close()
 
 	// open destination file
 	destFile, err := os.Create(dest)
 	if err != nil {
-		srcFile.Close()
 		return fmt.Errorf("error opening destination file: %s", err)
 	}
 	defer destFile.Close()
 
 	// copy file
 	_, err = io.Copy(destFile, srcFile)
-	srcFile.Close()
 	if err != nil {
 		return fmt.Errorf("writing to destination file failed: %s", err)
 	}
@@ -34,7 +33,6 @@ func CopyFile(src, dest string) error {
 
 // MoveFile moves the file from the source to the destination
 func MoveFile(src, dest string) error {
-
 	// copy file
 	err := CopyFile(src, dest)
 	if err != nil {
