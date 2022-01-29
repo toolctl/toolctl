@@ -2,6 +2,7 @@ package cmd_test
 
 import (
 	"testing"
+	"time"
 )
 
 func TestUpgradeCmd(t *testing.T) {
@@ -19,7 +20,8 @@ Examples:
   toolctl upgrade gh k9s
 
 Flags:
-  -h, --help   help for upgrade
+  -h, --help                      help for upgrade
+      --refresh-period duration   minimum time period before querying the API again
 
 Global Flags:
       --config string   path of the config file (default is $HOME/.config/toolctl/config.yaml)
@@ -274,6 +276,54 @@ $`,
 			wantErr: true,
 			wantOut: `Error: please don't specify a tool version, try this instead:
   toolctl upgrade toolctl-unsupported-test-tool
+`,
+		},
+		// -------------------------------------------------------------------------
+		{
+			name: "supported tool within refresh period",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.1",
+					tarGz:   true,
+				},
+			},
+			preinstalledTools: []preinstalledTool{
+				{
+					name: "toolctl-test-tool",
+					fileContents: `#!/bin/sh
+echo "v0.1.0"
+`,
+				},
+			},
+			cliArgs:            []string{"toolctl-test-tool", "--refresh-period", "1h"},
+			upgradeLastSuccess: time.Now().Add(-time.Minute),
+			wantOutRegex:       `\A\z`,
+		},
+		// -------------------------------------------------------------------------
+		{
+			name: "supported tool outside refresh period",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.1",
+					tarGz:   true,
+				},
+			},
+			preinstalledTools: []preinstalledTool{
+				{
+					name: "toolctl-test-tool",
+					fileContents: `#!/bin/sh
+echo "v0.1.0"
+`,
+				},
+			},
+			cliArgs:            []string{"toolctl-test-tool", "--refresh-period", "1m"},
+			upgradeLastSuccess: time.Now().Add(-time.Hour),
+			wantOut: `👷 Upgrading from v0.1.0 to v0.1.1 ...
+👷 Removing v0.1.0 ...
+👷 Installing v0.1.1 ...
+🎉 Successfully installed
 `,
 		},
 	}

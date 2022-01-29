@@ -13,6 +13,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/mholt/archiver/v3"
@@ -20,6 +21,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/toolctl/toolctl/internal/api"
 	"github.com/toolctl/toolctl/internal/cmd"
+	"github.com/toolctl/toolctl/internal/utils"
 )
 
 func TestArgsToTools(t *testing.T) {
@@ -111,6 +113,7 @@ type test struct {
 	installDirNotInPath         bool
 	installDirNotWritable       bool
 	installDirNotPreinstallDir  bool
+	upgradeLastSuccess          time.Time
 	supportedTools              []supportedTool
 	preinstalledTools           []preinstalledTool
 	preinstalledToolIsSymlinked bool
@@ -278,6 +281,45 @@ func setupLocalAPI(supportedTools []supportedTool, createTopLevelMeta bool) (
 	}
 
 	return
+}
+
+func setupState(t *testing.T, tt test) (err error) {
+	const xdgCacheHomeKey = "XDG_CACHE_HOME"
+
+	// Restore $XDG_CACHE_HOME when test exits
+	oldXDGCacheHome := os.Getenv(xdgCacheHomeKey)
+	t.Cleanup(func() {
+		if err := os.Setenv(xdgCacheHomeKey, oldXDGCacheHome); err != nil {
+			t.Fatal(err)
+		}
+	})
+
+	// Create a temporary XDG cache directory
+	tempDir := t.TempDir()
+	err = os.Setenv(xdgCacheHomeKey, tempDir)
+	if err != nil {
+		return err
+	}
+
+	osFs := afero.NewOsFs()
+
+	// Create a new state
+	var state *utils.State
+	state, err = utils.NewState(osFs)
+	if err != nil {
+		return err
+	}
+
+	// Set the state's Upgrade.LastSuccess field
+	state.Upgrade.LastSuccess = tt.upgradeLastSuccess
+
+	// Save the state
+	err = state.Write(osFs)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type APIFile struct {
@@ -557,6 +599,13 @@ func runInstallUpgradeTests(
 
 		if tt.installDirNotWritable {
 			err = os.Chmod(installTempDir, 0500)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		if !tt.upgradeLastSuccess.IsZero() {
+			err = setupState(t, tt)
 			if err != nil {
 				t.Fatal(err)
 			}

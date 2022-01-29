@@ -8,11 +8,15 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/toolctl/toolctl/internal/api"
+	"github.com/toolctl/toolctl/internal/utils"
 )
+
+var upgradeRefreshPeriod time.Duration
 
 func newUpgradeCmd(
 	toolctlWriter io.Writer, localAPIFS afero.Fs,
@@ -31,6 +35,7 @@ func newUpgradeCmd(
 		Args: checkArgs(true),
 		RunE: newRunUpgrade(toolctlWriter, localAPIFS),
 	}
+	upgradeCmd.Flags().DurationVar(&upgradeRefreshPeriod, "refresh-period", 0, "minimum time period before querying the API again")
 	return upgradeCmd
 }
 
@@ -38,6 +43,20 @@ func newRunUpgrade(
 	toolctlWriter io.Writer, localAPIFS afero.Fs,
 ) func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
+		osFs := afero.NewOsFs()
+
+		var state *utils.State
+		state, err = utils.NewState(osFs)
+		if err != nil {
+			return
+		}
+
+		// If the last successful upgrade was less than upgradePeriod then
+		// return
+		if upgradeRefreshPeriod != 0 && time.Since(state.Upgrade.LastSuccess) < upgradeRefreshPeriod {
+			return
+		}
+
 		toolctlAPI, err := api.New(localAPIFS, cmd, api.Remote)
 		if err != nil {
 			return err
@@ -92,6 +111,13 @@ func newRunUpgrade(
 			if err != nil {
 				return
 			}
+		}
+
+		// Record the successful upgrade
+		state.Upgrade.LastSuccess = time.Now()
+		err = state.Write(osFs)
+		if err != nil {
+			return err
 		}
 
 		return
