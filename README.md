@@ -112,7 +112,7 @@ In general, `toolctl` currently supports any tool that:
 ✔ includes a command or flag to print its [semantic version](https://semver.org/)\
 ✔ provides its source code and precompiled binaries online under a free and open source license
 
-If you know a tool that fits all of these criteria, please [open an issue](https://github.com/toolctl/toolctl/issues/new) and let us know!
+If you know a tool that fits all of these criteria, please [open an issue](https://github.com/toolctl/toolctl/issues/new?template=tool_request.md&title=Tool%20request:) and let us know!
 
 ## Credits
 
