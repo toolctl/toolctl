@@ -81,6 +81,7 @@ Currently, `toolctl` supports the following tools:
 - [age](https://age-encryption.org/): A simple, modern and secure encryption tool
 - [chezmoi](https://chezmoi.io/): Manage your dotfiles across multiple diverse machines, securely
 - [dive](https://github.com/wagoodman/dive): A tool for exploring each layer in a docker image
+- [eksctl](https://eksctl.io/): The official CLI for Amazon EKS
 - [gh](https://cli.github.com/): GitHub's official command line tool
 - [golangci-lint](https://golangci-lint.run/): Fast linters runner for Go
 - [helm](https://helm.sh/): The Kubernetes package manager
