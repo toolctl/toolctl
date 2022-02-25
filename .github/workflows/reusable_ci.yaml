@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Run the linters
-        uses: golangci/golangci-lint-action@v2
+        uses: golangci/golangci-lint-action@v3
 
   test:
     runs-on: ubuntu-latest
