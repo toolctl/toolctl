@@ -7,7 +7,7 @@ on:
 
 jobs:
   reusable-ci:
-    uses: toolctl/toolctl/.github/workflows/reusable_ci.yaml@main
+    uses: ./.github/workflows/reusable_ci.yaml
 
   goreleaser:
     runs-on: ubuntu-latest
