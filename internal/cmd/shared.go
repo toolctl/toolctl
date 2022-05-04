@@ -127,6 +127,7 @@ func extractDownloadedTool(tool api.Tool, downloadedToolPath string) (
 
 	// Extract the tool if it's a .tar.gz file
 	if strings.HasSuffix(downloadedToolPath, ".tar.gz") ||
+		strings.HasSuffix(downloadedToolPath, ".tgz") ||
 		strings.HasSuffix(downloadedToolPath, ".zip") {
 		// Extract the downloaded file
 		err = archiver.Unarchive(downloadedToolPath, dir)
