@@ -17,6 +17,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/toolctl/toolctl/internal/api"
+	"golang.org/x/exp/slices"
 )
 
 func newDiscoverCmd(toolctlWriter io.Writer, localAPIFS afero.Fs) *cobra.Command {
@@ -164,8 +165,29 @@ func discoverLoop(
 		var statusCode int
 		var skipSleep bool
 
-		// Check if we already have the version
 		tool.Version = version.String()
+
+		// Check if we should ignore this version
+		if slices.Contains(toolMeta.IgnoreVersions, tool.Version) {
+			fmt.Fprintf(toolctlWriter, "%s %s/%s v%s ignored\n",
+				tool.Name, tool.OS, tool.Arch, tool.Version,
+			)
+
+			componentToIncrement = "patch"
+			missCounter = 0
+			skipSleep = true
+
+			version, err = incrementAndSleep(
+				version, componentToIncrement, url, skipSleep,
+			)
+			if err != nil {
+				return
+			}
+
+			continue
+		}
+
+		// Check if we already have this version
 		_, err = api.GetToolPlatformVersionMeta(toolctlAPI, tool)
 		if err != nil {
 			if !errors.Is(err, api.NotFoundError{}) {
@@ -221,17 +243,31 @@ func discoverLoop(
 			skipSleep = true
 		}
 
-		version, err = incrementVersion(version, componentToIncrement)
+		version, err = incrementAndSleep(
+			version, componentToIncrement, url, skipSleep,
+		)
 		if err != nil {
-			return err
+			return
 		}
-
-		if skipSleep || strings.HasPrefix(url, "http://127.0.0.1:") {
-			continue
-		}
-
-		time.Sleep(500 * time.Millisecond)
 	}
+}
+
+func incrementAndSleep(
+	versionToIncrement *semver.Version, componentToIncrement string,
+	url string, skipSleep bool,
+) (version *semver.Version, err error) {
+	version, err = incrementVersion(versionToIncrement, componentToIncrement)
+	if err != nil {
+		return
+	}
+
+	if skipSleep || strings.HasPrefix(url, "http://127.0.0.1:") {
+		return
+	}
+
+	time.Sleep(500 * time.Millisecond)
+
+	return
 }
 
 // addNewVersion adds a new version of a tool to the local API.

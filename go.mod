@@ -1,6 +1,6 @@
 module github.com/toolctl/toolctl
 
-go 1.17
+go 1.18
 
 require (
 	github.com/Masterminds/semver v1.5.0
@@ -35,6 +35,7 @@ require (
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/xi2/xz v0.0.0-20171230120015-48954b6210f8 // indirect
+	golang.org/x/exp v0.0.0-20220428152302-39d4317da171
 	golang.org/x/text v0.3.7 // indirect
 	gopkg.in/ini.v1 v1.66.4 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
