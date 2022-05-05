@@ -79,6 +79,7 @@ You can [download the latest version of toolctl](https://github.com/toolctl/tool
 Currently, `toolctl` supports the following tools:
 
 - [age](https://age-encryption.org/): A simple, modern and secure encryption tool
+- [age-keygen](https://age-encryption.org/): A simple, modern and secure encryption tool
 - [chezmoi](https://chezmoi.io/): Manage your dotfiles across multiple diverse machines, securely
 - [dive](https://github.com/wagoodman/dive): A tool for exploring each layer in a docker image
 - [eksctl](https://eksctl.io/): The official CLI for Amazon EKS
@@ -88,7 +89,8 @@ Currently, `toolctl` supports the following tools:
 - [helm](https://helm.sh/): The Kubernetes package manager
 - [hugo](https://gohugo.io/): The world's fastest framework for building websites
 - [k9s](https://k9scli.io/): Kubernetes CLI to manage your clusters in style
-- [kind](https://kind.sigs.k8s.io/): Kubernetes IN Docker - local clusters for testing Kubernetes
+- [kind](https://kind.sigs.k8s.io/): Kubernetes in Docker - local clusters for testing Kubernetes
+- [kops](https://kops.sigs.k8s.io/): Production grade K8s installation, upgrades, and management
 - [kubectl](https://kubernetes.io/docs/reference/kubectl/): The Kubernetes command-line tool
 - [kubectx](https://github.com/ahmetb/kubectx): Faster way to switch between Kubernetes contexts
 - [kubefwd](https://github.com/txn2/kubefwd): Bulk port forwarding Kubernetes services for local development
