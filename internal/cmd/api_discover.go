@@ -168,7 +168,7 @@ func discoverLoop(
 		tool.Version = version.String()
 
 		// Check if we should ignore this version
-		if slices.Contains(toolMeta.IgnoreVersions, tool.Version) {
+		if slices.Contains(toolMeta.IgnoredVersions, tool.Version) {
 			fmt.Fprintf(toolctlWriter, "%s %s/%s v%s ignored\n",
 				tool.Name, tool.OS, tool.Arch, tool.Version,
 			)

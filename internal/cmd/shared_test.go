@@ -99,6 +99,7 @@ type supportedTool struct {
 	version                       string
 	binaryVersion                 string
 	downloadURLTemplatePath       string
+	ignoredVersions               []string
 	onlyOnDownloadServer          bool
 	tarGz                         bool
 	tarGzSubdir                   string
@@ -487,6 +488,7 @@ func supportedToolToAPIContents(
 			Path: path.Join(localAPIBasePath, supportedTool.name, "meta.yaml"),
 			Contents: `description: toolctl test tool
 downloadURLTemplate: ` + downloadServerURL + supportedTool.downloadURLTemplatePath + `
+ignoredVersions: ['` + strings.Join(supportedTool.ignoredVersions[:], "', '") + `']
 homepage: https://toolctl.io/
 versionArgs: [version, --short]
 `,
@@ -520,6 +522,9 @@ sha256: %s
 			},
 		)
 	}
+
+	// debug
+	fmt.Println(apiFiles)
 
 	return
 }
