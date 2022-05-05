@@ -218,6 +218,20 @@ URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.Linux.arm64`,
 		},
 		// -------------------------------------------------------------------------
 		{
+			name:    "Ignored version",
+			cliArgs: []string{"toolctl-test-tool-ignored-versions"},
+			supportedTools: []supportedTool{
+				{
+					name:            "toolctl-test-tool-ignored-versions",
+					version:         "0.1.0",
+					ignoredVersions: []string{"0.1.1"},
+					tarGz:           true,
+				},
+			},
+			wantOutRegex: `v0.1.1 ignored`,
+		},
+		// -------------------------------------------------------------------------
+		{
 			name:    "unsupported tool",
 			cliArgs: []string{"toolctl-unsupported-test-tool"},
 			wantErr: true,
