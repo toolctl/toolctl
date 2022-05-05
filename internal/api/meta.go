@@ -53,6 +53,7 @@ type ToolMeta struct {
 	Description         string
 	DownloadURLTemplate string `yaml:"downloadURLTemplate"`
 	Homepage            string
+	IgnoredVersions     []string `yaml:"ignoredVersions"`
 	VersionArgs         []string `yaml:"versionArgs"`
 }
 
