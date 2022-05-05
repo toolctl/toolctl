@@ -523,9 +523,6 @@ sha256: %s
 		)
 	}
 
-	// debug
-	fmt.Println(apiFiles)
-
 	return
 }
 
