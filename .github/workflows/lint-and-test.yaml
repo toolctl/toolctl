@@ -1,4 +1,4 @@
-name: Reusable CI
+name: Lint & Test
 
 on:
   workflow_call:

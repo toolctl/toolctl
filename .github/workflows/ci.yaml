@@ -7,5 +7,5 @@ on:
     branches: [main]
 
 jobs:
-  reusable-ci:
-    uses: ./.github/workflows/reusable_ci.yaml
+  lint-and-test:
+    uses: ./.github/workflows/lint-and-test.yaml
