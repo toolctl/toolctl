@@ -1,5 +1,14 @@
 {
   "extends": [
-    "config:base"
+    "config:base",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "automerge": true,
+  "dependencyDashboard": false,
+  "major": {
+    "automerge": false
+  },
+  "postUpdateOptions": [
+    "gomodTidy"
   ]
 }
