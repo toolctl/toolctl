@@ -18,6 +18,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/toolctl/toolctl/internal/api"
 	"golang.org/x/exp/slices"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 func newDiscoverCmd(toolctlWriter io.Writer, localAPIFS afero.Fs) *cobra.Command {
@@ -135,7 +137,9 @@ func discover(
 		"LinuxTitle": func(in string) string {
 			return strings.Replace(in, "linux", "Linux", 1)
 		},
-		"Title": strings.Title,
+		"Title": func(in string) string {
+			return cases.Title(language.Und, cases.NoLower).String(in)
+		},
 	}
 	downloadURLTemplate, err := template.New("URL").Funcs(funcMap).Parse(toolMeta.DownloadURLTemplate)
 	if err != nil {

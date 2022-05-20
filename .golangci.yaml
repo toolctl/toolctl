@@ -4,6 +4,7 @@ linters:
     - gofmt
     - govet
     - ineffassign
+    - lll
     - misspell
     - revive
     - staticcheck
