@@ -41,7 +41,9 @@ func NewRootCmd(toolctlWriter io.Writer, localAPIFS afero.Fs) *cobra.Command {
 	rootCmd.Flags().BoolVar(&versionFlag, "version", false, "display the version of toolctl")
 
 	// Persistent flags
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "path of the config file (default is $HOME/.config/toolctl/config.yaml)")
+	rootCmd.PersistentFlags().StringVar(
+		&cfgFile, "config", "", "path of the config file (default is $HOME/.config/toolctl/config.yaml)",
+	)
 
 	// Hidden persistent flags
 	rootCmd.PersistentFlags().Bool("local", false, "Use the local API")

@@ -23,7 +23,8 @@ Global Flags:
 		{
 			name:    "no cli args",
 			cliArgs: []string{},
-			wantOut: `{"GitVersion":"v0.0.0-dev","GitCommit":"da39a3ee5e6b4b0d3255bfef95601890afd80709","BuildDate":"0000-00-00T00:00:00Z"}
+			wantOut: `{"GitVersion":"v0.0.0-dev",` +
+				`"GitCommit":"da39a3ee5e6b4b0d3255bfef95601890afd80709","BuildDate":"0000-00-00T00:00:00Z"}
 `,
 		},
 		{

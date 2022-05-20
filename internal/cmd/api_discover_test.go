@@ -188,10 +188,11 @@ URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.linux.arm64`,
 			cliArgs: []string{"toolctl-test-tool-template-func"},
 			supportedTools: []supportedTool{
 				{
-					name:                    "toolctl-test-tool-template-func",
-					version:                 "0.1.0",
-					downloadURLTemplatePath: "/v{{.Version}}/{{.Name}}-v{{.Version}}.{{.OS | Title}}.{{.Arch | AMD64X86_64 | ARMUpper}}",
-					tarGz:                   true,
+					name:    "toolctl-test-tool-template-func",
+					version: "0.1.0",
+					downloadURLTemplatePath: "/v{{.Version}}/" +
+						"{{.Name}}-v{{.Version}}.{{.OS | Title}}.{{.Arch | AMD64X86_64 | ARMUpper}}",
+					tarGz: true,
 				},
 			},
 			wantOutRegex: `(?s)URL: .+/v0.2.0/toolctl-test-tool-template-func-v0.2.0.Darwin.x86_64.+
