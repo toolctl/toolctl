@@ -82,6 +82,7 @@ Currently, `toolctl` supports the following tools:
 - [age-keygen](https://age-encryption.org/): A simple, modern and secure encryption tool
 - [chezmoi](https://chezmoi.io/): Manage your dotfiles across multiple diverse machines, securely
 - [dive](https://github.com/wagoodman/dive): A tool for exploring each layer in a docker image
+- [dockerfilegraph](https://github.com/patrickhoefler/dockerfilegraph): Visualize your multi-stage Dockerfiles
 - [eksctl](https://eksctl.io/): The official CLI for Amazon EKS
 - [gdu](https://github.com/dundee/gdu): Fast disk usage analyzer with console interface written in Go
 - [gh](https://cli.github.com/): GitHub's official command line tool
