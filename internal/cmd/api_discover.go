@@ -106,7 +106,19 @@ func discover(
 
 	var version *semver.Version
 	if tool.Version != "" {
-		version = semver.MustParse(tool.Version)
+		if tool.Version == "earliest" {
+			var toolPlatformMeta api.ToolPlatformMeta
+			toolPlatformMeta, err = api.GetToolPlatformMeta(toolctlAPI, tool)
+			if err != nil {
+				return
+			}
+			version = semver.MustParse(toolPlatformMeta.Version.Earliest)
+		} else {
+			version, err = semver.NewVersion(tool.Version)
+			if err != nil {
+				return
+			}
+		}
 	} else {
 		version, err = setInitialVersion(toolctlAPI, tool)
 		if err != nil {
