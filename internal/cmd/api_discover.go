@@ -415,9 +415,17 @@ func incrementVersion(version *semver.Version, component string) (*semver.Versio
 
 	switch component {
 	case "major":
-		incrementedVersion = version.IncMajor()
+		if version.Patch() == 0 {
+			incrementedVersion = version.IncPatch()
+		} else {
+			incrementedVersion = version.IncMajor()
+		}
 	case "minor":
-		incrementedVersion = version.IncMinor()
+		if version.Patch() == 0 {
+			incrementedVersion = version.IncPatch()
+		} else {
+			incrementedVersion = version.IncMinor()
+		}
 	case "patch":
 		incrementedVersion = version.IncPatch()
 	default:
