@@ -123,7 +123,21 @@ Global Flags:
 		},
 		// -------------------------------------------------------------------------
 		{
-			name: "supported tool with version",
+			name: "supported tool with invalid version",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.0",
+					tarGz:   true,
+				},
+			},
+			cliArgs: []string{"toolctl-test-tool@invalid"},
+			wantErr: true,
+			wantOut: "Error: Invalid Semantic Version\n",
+		},
+		// -------------------------------------------------------------------------
+		{
+			name: "supported tool with valid version",
 			supportedTools: []supportedTool{
 				{
 					name:    "toolctl-test-tool",
@@ -138,6 +152,37 @@ Global Flags:
 				},
 			},
 			cliArgs: []string{"toolctl-test-tool@0.1.0"},
+			wantOutRegex: `toolctl-test-tool (darwin|linux)/(amd|arm)64 v0.1.0 already added
+` + defaultOutRegex,
+			wantFiles: []APIFile{
+				{
+					Path: fmt.Sprintf(
+						"toolctl-test-tool/%s-%s/0.2.0.yaml", runtime.GOOS, runtime.GOARCH,
+					),
+				},
+			},
+		},
+		// -------------------------------------------------------------------------
+		{
+			name: "supported tool with earliest version",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.0",
+					tarGz:   true,
+				},
+				{
+					name:                 "toolctl-test-tool",
+					version:              "0.2.0",
+					onlyOnDownloadServer: true,
+					tarGz:                true,
+				},
+			},
+			cliArgs: []string{
+				"toolctl-test-tool@earliest",
+				"--os", runtime.GOOS,
+				"--arch", runtime.GOARCH,
+			},
 			wantOutRegex: `toolctl-test-tool (darwin|linux)/(amd|arm)64 v0.1.0 already added
 ` + defaultOutRegex,
 			wantFiles: []APIFile{
