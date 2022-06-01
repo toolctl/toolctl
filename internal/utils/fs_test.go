@@ -19,7 +19,11 @@ func createOriginFile() (*os.File, error) {
 		return nil, err
 	}
 	defer file.Close()
-	file.WriteString(content)
+	_, err = file.WriteString(content)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return file, nil
 }
@@ -104,7 +108,10 @@ func TestSetPermissions(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to create the file")
 	}
-	utils.SetPermissions(file.Name())
+	err = utils.SetPermissions(file.Name())
+	if err != nil {
+		t.Errorf("failed to set file permissions")
+	}
 
 	stats, err := os.Stat(file.Name())
 	if err != nil {
