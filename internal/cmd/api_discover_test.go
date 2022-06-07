@@ -264,6 +264,23 @@ URL: .+/v0.1.1/toolctl-test-tool-template-func-v0.1.1.Linux.arm64`,
 		},
 		// -------------------------------------------------------------------------
 		{
+			name:    "DarwinArchAll template functions",
+			cliArgs: []string{"toolctl-test-tool-template-func"},
+			supportedTools: []supportedTool{
+				{
+					name:                    "toolctl-test-tool-template-func",
+					version:                 "0.1.0",
+					downloadURLTemplatePath: "/v{{.Version}}/{{.Name}}-v{{.Version}}.{{.OS}}.{{.Arch | DarwinArchAll}}",
+					tarGz:                   true,
+				},
+			},
+			wantOutRegex: `(?s)URL: .+/v0.1.1/toolctl-test-tool-template-func-v0.1.1.darwin.all.+
+URL: .+/v0.1.1/toolctl-test-tool-template-func-v0.1.1.darwin.all.+
+URL: .+/v0.1.1/toolctl-test-tool-template-func-v0.1.1.linux.amd64.+
+URL: .+/v0.1.1/toolctl-test-tool-template-func-v0.1.1.linux.arm64`,
+		},
+		// -------------------------------------------------------------------------
+		{
 			name:    "Ignored version",
 			cliArgs: []string{"toolctl-test-tool-ignored-versions"},
 			supportedTools: []supportedTool{
