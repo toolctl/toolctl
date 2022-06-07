@@ -143,6 +143,12 @@ func discover(
 		"ARMUpper": func(in string) string {
 			return strings.Replace(in, "arm", "ARM", 1)
 		},
+		"DarwinArchAll": func(in string) string {
+			if tool.OS == "darwin" {
+				return "all"
+			}
+			return in
+		},
 		"DarwinMacOS": func(in string) string {
 			return strings.Replace(in, "darwin", "macOS", 1)
 		},
