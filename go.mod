@@ -11,7 +11,7 @@ require (
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0
 	golang.org/x/exp v0.0.0-20220613132600-b0d781184e0d
-	golang.org/x/sys v0.0.0-20220615213510-4f61da869c0c
+	golang.org/x/sys v0.0.0-20220622161953-175b2fd9d664
 	golang.org/x/text v0.3.7
 	gopkg.in/yaml.v3 v3.0.1
 )
