@@ -2,7 +2,7 @@ package api
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -26,7 +26,7 @@ func (a remoteAPI) GetContents(path string) (found bool, contents []byte, err er
 		return
 	}
 
-	contents, err = ioutil.ReadAll(resp.Body)
+	contents, err = io.ReadAll(resp.Body)
 	if err != nil {
 		return
 	}

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"os/user"
@@ -166,7 +165,7 @@ func install(
 	)
 
 	// Download the tool
-	tempDir, err := ioutil.TempDir("", "toolctl-*")
+	tempDir, err := os.MkdirTemp("", "toolctl-*")
 	if err != nil {
 		return
 	}

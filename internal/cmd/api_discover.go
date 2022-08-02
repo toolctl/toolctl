@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"runtime"
@@ -297,7 +296,7 @@ func addNewVersion(
 	toolctlWriter io.Writer, toolctlAPI api.ToolctlAPI, toolMeta api.ToolMeta,
 	tool api.Tool, url string,
 ) (err error) {
-	tempDir, err := ioutil.TempDir("", "toolctl-*")
+	tempDir, err := os.MkdirTemp("", "toolctl-*")
 	if err != nil {
 		return
 	}

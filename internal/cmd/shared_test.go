@@ -3,7 +3,6 @@ package cmd_test
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -125,7 +124,7 @@ type test struct {
 func setupPreinstallTempDir(
 	t *testing.T, tt test, toolctlAPI api.ToolctlAPI, originalPathEnv string,
 ) (preinstallTempDir string) {
-	preinstallTempDir, err := ioutil.TempDir("", "toolctl-test-install-*")
+	preinstallTempDir, err := os.MkdirTemp("", "toolctl-test-install-*")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -539,7 +538,7 @@ func runInstallUpgradeTests(
 			t.Fatal(err)
 		}
 
-		installTempDir, err := ioutil.TempDir("", "toolctl-test-install-*")
+		installTempDir, err := os.MkdirTemp("", "toolctl-test-install-*")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -610,7 +609,7 @@ func runInstallUpgradeTests(
 }
 
 func setupInstallTempDir(t *testing.T, tt test) (installTempDir string) {
-	installTempDir, err := ioutil.TempDir("", "toolctl-test-install-*")
+	installTempDir, err := os.MkdirTemp("", "toolctl-test-install-*")
 	if err != nil {
 		t.Fatal(err)
 	}
