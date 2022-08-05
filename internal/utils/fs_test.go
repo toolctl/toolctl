@@ -1,7 +1,6 @@
 package utils_test
 
 import (
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -57,7 +56,7 @@ func TestCopyFile(t *testing.T) {
 	defer os.Remove(destFilePath.Name())
 
 	// Read destination file content
-	destFileContent, err := ioutil.ReadFile(destFilePath.Name())
+	destFileContent, err := os.ReadFile(destFilePath.Name())
 	if err != nil {
 		t.Errorf("failed to open destination file")
 	}
@@ -92,7 +91,7 @@ func TestMoveFile(t *testing.T) {
 	}
 
 	// Read destination file content
-	destFileContent, err := ioutil.ReadFile(destFilePath.Name())
+	destFileContent, err := os.ReadFile(destFilePath.Name())
 	if err != nil {
 		t.Errorf("failed to open destination file")
 	}

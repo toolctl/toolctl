@@ -12,7 +12,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # tag=v3
         with:
-          go-version: '1.18'
+          go-version-file: 'go.mod'
 
       - name: Run the linters
         uses: golangci/golangci-lint-action@537aa1903e5d359d0b27dbc19ddd22c5087f3fbc # tag=v3.2.0
@@ -25,7 +25,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@84cbf8094393cdc5fe1fe1671ff2647332956b1a # tag=v3
         with:
-          go-version: '1.18'
+          go-version-file: 'go.mod'
 
       - name: Run the tests and generate the coverage profile
         run: go test ./... --coverprofile=cover.out
