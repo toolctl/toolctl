@@ -10,7 +10,7 @@ require (
 	github.com/spf13/afero v1.9.2
 	github.com/spf13/cobra v1.5.0
 	github.com/spf13/viper v1.12.0
-	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
+	golang.org/x/exp v0.0.0-20220823124025-807a23277127
 	golang.org/x/sys v0.0.0-20220818161305-2296e01440c6
 	golang.org/x/text v0.3.7
 	gopkg.in/yaml.v3 v3.0.1
