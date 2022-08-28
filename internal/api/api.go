@@ -1,3 +1,4 @@
+// Package api contains everything related to the toolctl API.
 package api
 
 import (
