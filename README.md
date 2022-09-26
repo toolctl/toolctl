@@ -87,6 +87,7 @@ Currently, `toolctl` supports the following tools:
 - [gdu](https://github.com/dundee/gdu): Fast disk usage analyzer with console interface written in Go
 - [gh](https://cli.github.com/): GitHub's official command line tool
 - [golangci-lint](https://golangci-lint.run/): Fast linters runner for Go
+- [gping](https://github.com/orf/gping): Ping, but with a graph
 - [helm](https://helm.sh/): The Kubernetes package manager
 - [hugo](https://gohugo.io/): The world's fastest framework for building websites
 - [k9s](https://k9scli.io/): Kubernetes CLI to manage your clusters in style
