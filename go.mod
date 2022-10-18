@@ -12,7 +12,7 @@ require (
 	github.com/spf13/viper v1.13.0
 	golang.org/x/exp v0.0.0-20221012211006-4de253d81b95
 	golang.org/x/sys v0.1.0
-	golang.org/x/text v0.3.8
+	golang.org/x/text v0.4.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
