@@ -148,6 +148,12 @@ func discover(
 			}
 			return in
 		},
+		"DarwinExtensionTGZ": func(in string) string {
+			if tool.OS == "darwin" {
+				return ".tgz"
+			}
+			return in
+		},
 		"DarwinMacOS": func(in string) string {
 			return strings.Replace(in, "darwin", "macOS", 1)
 		},
