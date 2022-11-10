@@ -16,7 +16,6 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/toolctl/toolctl/internal/api"
-	"golang.org/x/exp/slices"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -183,6 +182,7 @@ func discoverLoop(
 ) (err error) {
 	var (
 		componentToIncrement = "patch"
+		ignoredVersions      = getIgnoredVersionsMap(toolMeta)
 		missCounter          int
 		url                  string
 		version              = semver.MustParse(tool.Version)
@@ -195,7 +195,7 @@ func discoverLoop(
 		tool.Version = version.String()
 
 		// Check if we should ignore this version
-		if slices.Contains(toolMeta.IgnoredVersions, tool.Version) {
+		if _, exists := ignoredVersions[tool.Version]; exists {
 			fmt.Fprintf(toolctlWriter, "%s %s/%s v%s ignored\n",
 				tool.Name, tool.OS, tool.Arch, tool.Version,
 			)
@@ -277,6 +277,14 @@ func discoverLoop(
 			return
 		}
 	}
+}
+
+func getIgnoredVersionsMap(toolMeta api.ToolMeta) map[string]struct{} {
+	ignoredVersions := make(map[string]struct{}, len(toolMeta.IgnoredVersions))
+	for _, ignoredVersion := range toolMeta.IgnoredVersions {
+		ignoredVersions[ignoredVersion] = struct{}{}
+	}
+	return ignoredVersions
 }
 
 func incrementAndSleep(
