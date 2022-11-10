@@ -6,6 +6,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/toolctl/toolctl)](https://goreportcard.com/report/github.com/toolctl/toolctl)
 [![GitHub release (latest)](https://img.shields.io/github/v/release/toolctl/toolctl)](https://github.com/toolctl/toolctl/releases/latest)
 [![GitHub](https://img.shields.io/github/license/toolctl/toolctl)](LICENSE)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Ftoolctl%2Ftoolctl.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Ftoolctl%2Ftoolctl?ref=badge_shield)
 
 `toolctl` helps you manage your tools on Linux and macOS.
 
