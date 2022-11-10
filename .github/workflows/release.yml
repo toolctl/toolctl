@@ -7,7 +7,7 @@ on:
 
 jobs:
   lint-and-test:
-    uses: ./.github/workflows/lint-and-test.yaml
+    uses: ./.github/workflows/lint-and-test.yml
 
   goreleaser:
     runs-on: ubuntu-latest
