@@ -138,12 +138,15 @@ func discover(
 		"AMD64X86_64": func(in string) string {
 			return strings.Replace(in, "amd64", "x86_64", 1)
 		},
-		"ARMUpper": func(in string) string {
-			return strings.Replace(in, "arm", "ARM", 1)
-		},
 		"DarwinArchAll": func(in string) string {
 			if tool.OS == "darwin" {
 				return "all"
+			}
+			return in
+		},
+		"DarwinArchUniversal": func(in string) string {
+			if tool.OS == "darwin" {
+				return "universal"
 			}
 			return in
 		},
