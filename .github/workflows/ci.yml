@@ -1,9 +1,11 @@
 name: CI
 
 on:
+  pull_request:
+    branches: [main]
   push:
     branches: [main]
-  pull_request:
+  merge_group:
     branches: [main]
 
 jobs:
