@@ -121,9 +121,7 @@ type test struct {
 	wantFiles                   []APIFile
 }
 
-func setupPreinstallTempDir(
-	t *testing.T, tt test, toolctlAPI api.ToolctlAPI, originalPathEnv string,
-) (preinstallTempDir string) {
+func setupPreinstallTempDir(t *testing.T, tt test) (preinstallTempDir string) {
 	preinstallTempDir, err := os.MkdirTemp("", "toolctl-test-install-*")
 	if err != nil {
 		t.Fatal(err)
@@ -545,9 +543,7 @@ func runInstallUpgradeTests(
 
 		var preinstallTempDir string
 		if !cmp.Equal(tt.preinstalledTools, []preinstalledTool{}) {
-			preinstallTempDir = setupPreinstallTempDir(
-				t, tt, toolctlAPI, originalPathEnv,
-			)
+			preinstallTempDir = setupPreinstallTempDir(t, tt)
 		}
 
 		if !tt.installDirNotPreinstallDir && !tt.installDirNotInPath {

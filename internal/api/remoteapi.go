@@ -48,7 +48,7 @@ func (a remoteAPI) Location() Location {
 }
 
 // SaveContents is currently not supported by the remote API.
-func (a remoteAPI) SaveContents(path string, contents []byte) (err error) {
+func (a remoteAPI) SaveContents(_ string, _ []byte) (err error) {
 	return fmt.Errorf("not implemented")
 }
 
