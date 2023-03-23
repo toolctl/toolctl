@@ -1,26 +1,24 @@
 package cmd
 
 import (
-	"io"
-
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/toolctl/toolctl/internal/api"
 )
 
-func newSyncCmd(toolctlWriter io.Writer, localAPIFS afero.Fs) *cobra.Command {
+func newSyncCmd(localAPIFS afero.Fs) *cobra.Command {
 	discoverCmd := &cobra.Command{
 		Use:   "sync [flags]",
 		Short: "Sync the list of supported tools",
 		Args:  cobra.NoArgs,
-		RunE:  newRunSync(toolctlWriter, localAPIFS),
+		RunE:  newRunSync(localAPIFS),
 	}
 
 	return discoverCmd
 }
 
 func newRunSync(
-	toolctlWriter io.Writer, localAPIFS afero.Fs,
+	localAPIFS afero.Fs,
 ) func(cmd *cobra.Command, args []string) (err error) {
 	return func(cmd *cobra.Command, args []string) (err error) {
 		// Needs to run with the local API because we need write access

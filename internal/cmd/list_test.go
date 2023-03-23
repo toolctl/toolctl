@@ -87,9 +87,7 @@ toolctl-another-test-tool
 
 		var preinstallTempDir string
 		if !cmp.Equal(tt.preinstalledTools, []preinstalledTool{}) {
-			preinstallTempDir = setupPreinstallTempDir(
-				t, tt, toolctlAPI, originalPathEnv,
-			)
+			preinstallTempDir = setupPreinstallTempDir(t, tt)
 		}
 
 		t.Run(tt.name, func(t *testing.T) {
