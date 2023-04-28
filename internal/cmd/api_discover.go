@@ -150,9 +150,15 @@ func discover(
 			}
 			return in
 		},
-		"DarwinExtensionTGZ": func(in string) string {
+		"DarwinExtensionTgz": func(in string) string {
 			if tool.OS == "darwin" {
 				return ".tgz"
+			}
+			return in
+		},
+		"DarwinExtensionZip": func(in string) string {
+			if tool.OS == "darwin" {
+				return ".zip"
 			}
 			return in
 		},
