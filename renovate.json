@@ -4,6 +4,7 @@
     "helpers:pinGitHubActionDigests"
   ],
   "automerge": true,
+  "platformAutomerge": true,
   "dependencyDashboard": false,
   "major": {
     "automerge": false
