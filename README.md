@@ -14,7 +14,7 @@
 ### Automatic
 
 ```shell
-curl -fsSL https://toolctl.io/install | sh
+curl -fsSL https://raw.githubusercontent.com/toolctl/install/main/install | sh
 ```
 
 ### Manual
