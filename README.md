@@ -104,7 +104,7 @@ Currently, `toolctl` supports the following tools:
 - [minikube](https://minikube.sigs.k8s.io/): Run Kubernetes locally
 - [pulumi](https://www.pulumi.com/): Developer-first infrastructure as code
 - [skaffold](https://skaffold.dev/): Easy and repeatable Kubernetes development
-- [sops](https://github.com/mozilla/sops): Simple and flexible tool for managing secrets
+- [sops](https://github.com/getsops/sops): Simple and flexible tool for managing secrets
 - [stern](https://github.com/stern/stern): Multi pod and container log tailing for Kubernetes
 - [terraform](https://www.terraform.io/): Infrastructure as code software tool
 - [tkn](https://github.com/tektoncd/cli): A CLI for interacting with Tekton
