@@ -123,7 +123,7 @@ echo "v0.2.0"
 [toolctl-test-tool      ] 👷 Removing v0.1.0 ...
 [toolctl-test-tool      ] 👷 Installing v0.1.1 ...
 [toolctl-test-tool      ] 🎉 Successfully installed
-[toolctl-other-test-tool] ✅ already up-to-date
+[toolctl-other-test-tool] ✅ already up to date (v0.2.0)
 `,
 		},
 		// -------------------------------------------------------------------------
@@ -145,7 +145,7 @@ echo "v0.1.1"
 				},
 			},
 			cliArgs: []string{"toolctl-test-tool"},
-			wantOut: `✅ already up-to-date
+			wantOut: `✅ already up to date (v0.1.1)
 `,
 		},
 		// -------------------------------------------------------------------------

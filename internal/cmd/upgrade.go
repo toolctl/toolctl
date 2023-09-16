@@ -161,7 +161,10 @@ func upgrade(
 	if installedVersion.Equal(latestVersion) {
 		fmt.Fprintln(
 			toolctlWriter,
-			prependToolName(tool, allTools, "✅ already up-to-date"),
+			prependToolName(tool, allTools, fmt.Sprintf(
+				"✅ already up to date (v%s)",
+				installedVersion.String(),
+			)),
 		)
 		return
 	}
