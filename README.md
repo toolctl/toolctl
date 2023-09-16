@@ -66,8 +66,8 @@ You can [download the latest version of toolctl](https://github.com/toolctl/tool
 
 ```text
 ❯ toolctl upgrade
-[gh     ] ✅ already up-to-date
-[toolctl] ✅ already up-to-date
+[gh     ] ✅ Already up to date (v2.34.0)
+[toolctl] ✅ Already up to date (v0.4.11)
 [yq     ] 👷 Upgrading from v4.13.4 to v4.13.5 ...
 [yq     ] 👷 Removing v4.13.4 ...
 [yq     ] 👷 Installing v4.13.5 ...

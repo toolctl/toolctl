@@ -123,7 +123,7 @@ echo "v0.2.0"
 [toolctl-test-tool      ] 👷 Removing v0.1.0 ...
 [toolctl-test-tool      ] 👷 Installing v0.1.1 ...
 [toolctl-test-tool      ] 🎉 Successfully installed
-[toolctl-other-test-tool] ✅ already up-to-date
+[toolctl-other-test-tool] ✅ Already up to date (v0.2.0)
 `,
 		},
 		// -------------------------------------------------------------------------
@@ -145,7 +145,7 @@ echo "v0.1.1"
 				},
 			},
 			cliArgs: []string{"toolctl-test-tool"},
-			wantOut: `✅ already up-to-date
+			wantOut: `✅ Already up to date (v0.1.1)
 `,
 		},
 		// -------------------------------------------------------------------------
@@ -183,7 +183,7 @@ echo "v0.1.0"
 			},
 			preinstalledToolIsSymlinked: true,
 			cliArgs:                     []string{"toolctl-test-tool"},
-			wantOutRegex: `^🚫 skipping: .+ is symlinked from .+
+			wantOutRegex: `^🚫 Skipping: .+ is symlinked from .+
 $`,
 		},
 		// -------------------------------------------------------------------------
@@ -256,7 +256,7 @@ echo "v0.1.0"
 				},
 			},
 			cliArgs: []string{"toolctl-test-tool"},
-			wantOutRegex: `^🚫 skipping: toolctl-test-tool is installed in .+, not in .+
+			wantOutRegex: `^🚫 Skipping: toolctl-test-tool is installed in .+, not in .+
 $`,
 		},
 		// -------------------------------------------------------------------------

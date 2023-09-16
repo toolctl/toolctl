@@ -125,7 +125,7 @@ func upgrade(
 		fmt.Fprintln(
 			toolctlWriter, prependToolName(
 				tool, allTools, fmt.Sprintf(
-					"🚫 skipping: %s is installed in %s, not in %s",
+					"🚫 Skipping: %s is installed in %s, not in %s",
 					tool.Name, filepath.Dir(installedToolPath), installDir,
 				),
 			),
@@ -161,7 +161,10 @@ func upgrade(
 	if installedVersion.Equal(latestVersion) {
 		fmt.Fprintln(
 			toolctlWriter,
-			prependToolName(tool, allTools, "✅ already up-to-date"),
+			prependToolName(tool, allTools, fmt.Sprintf(
+				"✅ Already up to date (v%s)",
+				installedVersion.String(),
+			)),
 		)
 		return
 	}
@@ -181,7 +184,7 @@ func upgrade(
 		fmt.Fprintln(
 			toolctlWriter, prependToolName(
 				tool, allTools, fmt.Sprintf(
-					"🚫 skipping: %s is symlinked from %s",
+					"🚫 Skipping: %s is symlinked from %s",
 					wrapInQuotesIfContainsSpace(installedToolPath),
 					wrapInQuotesIfContainsSpace(symlinkPath),
 				),
