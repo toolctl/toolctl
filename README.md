@@ -88,6 +88,7 @@ Currently, `toolctl` supports the following tools:
 - [eksctl](https://eksctl.io/): The official CLI for Amazon EKS
 - [gdu](https://github.com/dundee/gdu): Fast disk usage analyzer with console interface written in Go
 - [gh](https://cli.github.com/): GitHub's official command line tool
+- [godolint](https://github.com/zabio3/godolint): Dockerfile linter, written in Golang 🐳
 - [golangci-lint](https://golangci-lint.run/): Fast linters runner for Go
 - [gping](https://github.com/orf/gping): Ping, but with a graph
 - [helm](https://helm.sh/): The Kubernetes package manager
