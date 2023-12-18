@@ -9,7 +9,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.0
-	github.com/spf13/viper v1.18.1
+	github.com/spf13/viper v1.18.2
 	golang.org/x/sys v0.15.0
 	golang.org/x/text v0.14.0
 	gopkg.in/yaml.v3 v3.0.1
