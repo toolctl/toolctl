@@ -66,7 +66,7 @@ func CalculateSHA256(body io.Reader) (sha string, err error) {
 }
 
 func checkArgs(worksWithoutArgs bool) cobra.PositionalArgs {
-	return func(cmd *cobra.Command, args []string) (err error) {
+	return func(_ *cobra.Command, args []string) (err error) {
 		if !worksWithoutArgs && len(args) == 0 {
 			err = fmt.Errorf("no tool specified")
 		}

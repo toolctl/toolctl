@@ -10,3 +10,6 @@ FLAGS = -ldflags "$(LDFLAGS)"
 
 build:
 	go build $(FLAGS)
+
+lint:
+	golangci-lint run

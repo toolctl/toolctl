@@ -20,7 +20,7 @@ func newSyncCmd(localAPIFS afero.Fs) *cobra.Command {
 func newRunSync(
 	localAPIFS afero.Fs,
 ) func(cmd *cobra.Command, args []string) (err error) {
-	return func(cmd *cobra.Command, args []string) (err error) {
+	return func(cmd *cobra.Command, _ []string) (err error) {
 		// Needs to run with the local API because we need write access
 		toolctlAPI, err := api.New(localAPIFS, cmd, api.Local)
 		if err != nil {
