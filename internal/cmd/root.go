@@ -25,10 +25,10 @@ func NewRootCmd(toolctlWriter io.Writer, localAPIFS afero.Fs) *cobra.Command {
 
   # Upgrade supported tools
   toolctl upgrade`,
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		PersistentPreRun: func(cmd *cobra.Command, _ []string) {
 			cmd.SilenceUsage = true
 		},
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			if versionFlag {
 				return printVersion(toolctlWriter)
 			}

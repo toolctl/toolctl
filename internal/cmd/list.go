@@ -56,7 +56,7 @@ func newListCmd(toolctlWriter io.Writer, localAPIFS afero.Fs) *cobra.Command {
 func newRunList(
 	toolctlWriter io.Writer, localAPIFS afero.Fs,
 ) func(*cobra.Command, []string) (err error) {
-	return func(cmd *cobra.Command, args []string) (err error) {
+	return func(cmd *cobra.Command, _ []string) (err error) {
 		toolctlAPI, err := api.New(localAPIFS, cmd, api.Remote)
 		if err != nil {
 			return err

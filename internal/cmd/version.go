@@ -39,7 +39,7 @@ func newVersionCmd(toolctlWriter io.Writer) *cobra.Command {
 }
 
 func newRunVersion(toolctlWriter io.Writer) func(cmd *cobra.Command, args []string) error {
-	return func(cmd *cobra.Command, args []string) (err error) {
+	return func(_ *cobra.Command, _ []string) (err error) {
 		return printVersion(toolctlWriter)
 	}
 }
