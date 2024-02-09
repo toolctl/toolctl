@@ -107,6 +107,7 @@ Currently, `toolctl` supports the following tools:
 - [skaffold](https://skaffold.dev/): Easy and repeatable Kubernetes development
 - [sops](https://github.com/getsops/sops): Simple and flexible tool for managing secrets
 - [stern](https://github.com/stern/stern): Multi pod and container log tailing for Kubernetes
+- [task](https://taskfile.dev/): A task runner / simpler Make alternative written in Go
 - [terraform](https://www.terraform.io/): Infrastructure as code software tool
 - [tkn](https://github.com/tektoncd/cli): A CLI for interacting with Tekton
 - [toolctl](https://github.com/toolctl/toolctl): The tool to control your tools
