@@ -95,6 +95,7 @@ Currently, `toolctl` supports the following tools:
 - [hugo](https://gohugo.io/): The world's fastest framework for building websites
 - [k9s](https://k9scli.io/): Kubernetes CLI to manage your clusters in style
 - [kind](https://kind.sigs.k8s.io/): Kubernetes in Docker - local clusters for testing Kubernetes
+- [kompose](https://kompose.io/): Convert Compose to Kubernetes
 - [kops](https://kops.sigs.k8s.io/): Production grade K8s installation, upgrades, and management
 - [kubectl](https://kubernetes.io/docs/reference/kubectl/): The Kubernetes command-line tool
 - [kubectx](https://github.com/ahmetb/kubectx): Faster way to switch between Kubernetes contexts
