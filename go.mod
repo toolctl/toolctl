@@ -8,7 +8,7 @@ require (
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/afero v1.11.0
-	github.com/spf13/cobra v1.8.0
+	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
 	golang.org/x/sys v0.21.0
 	golang.org/x/text v0.16.0
