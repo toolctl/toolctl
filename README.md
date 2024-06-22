@@ -90,6 +90,7 @@ Currently, `toolctl` supports the following tools:
 - [gh](https://cli.github.com/): GitHub's official command line tool
 - [godolint](https://github.com/zabio3/godolint): Dockerfile linter, written in Golang 🐳
 - [golangci-lint](https://golangci-lint.run/): Fast linters runner for Go
+- [goreleaser](https://goreleaser.com/): Deliver Go binaries as fast and easily as possible
 - [gping](https://github.com/orf/gping): Ping, but with a graph
 - [helm](https://helm.sh/): The Kubernetes package manager
 - [hugo](https://gohugo.io/): The world's fastest framework for building websites
