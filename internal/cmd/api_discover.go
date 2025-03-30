@@ -260,11 +260,12 @@ func discoverLoop(
 				missCounter++
 
 				if missCounter > 1 {
-					if componentToIncrement == "patch" {
+					switch componentToIncrement {
+					case "patch":
 						componentToIncrement = "minor"
-					} else if componentToIncrement == "minor" {
+					case "minor":
 						componentToIncrement = "major"
-					} else if componentToIncrement == "major" {
+					case "major":
 						return
 					}
 					missCounter = 0
