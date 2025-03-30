@@ -168,6 +168,12 @@ func discover(
 		"LinuxTitle": func(in string) string {
 			return strings.Replace(in, "linux", "Linux", 1)
 		},
+		"LinuxTitleGnu": func(in string) string {
+			return strings.Replace(in, "linux", "Linux-gnu", 1)
+		},
+		"LinuxTitleMusl": func(in string) string {
+			return strings.Replace(in, "linux", "Linux-musl", 1)
+		},
 		"Title": func(in string) string {
 			return cases.Title(language.Und, cases.NoLower).String(in)
 		},
