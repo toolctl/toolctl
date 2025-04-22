@@ -22,7 +22,7 @@ import (
 	"github.com/toolctl/toolctl/internal/api"
 )
 
-// ArgToTool converts a command line argument to a tool.
+// ArgToTool converts a CLI argument into a Tool object, supporting optional version parsing.
 func ArgToTool(arg string, os string, arch string, versionAllowed bool) (tool api.Tool, err error) {
 	splitArg := strings.SplitN(arg, "@", 2)
 	tool = api.Tool{
@@ -40,7 +40,7 @@ func ArgToTool(arg string, os string, arch string, versionAllowed bool) (tool ap
 	return
 }
 
-// ArgsToTools converts a list of command line arguments to a list of tools.
+// ArgsToTools converts CLI arguments into a list of Tool objects, validating each argument.
 func ArgsToTools(
 	args []string, os string, arch string, versionAllowed bool,
 ) ([]api.Tool, error) {
@@ -57,7 +57,7 @@ func ArgsToTools(
 	return tools, nil
 }
 
-// CalculateSHA256 calculates the SHA256 hash of an io.Reader.
+// CalculateSHA256 computes the SHA256 hash of data from an io.Reader.
 func CalculateSHA256(body io.Reader) (sha string, err error) {
 	hash := sha256.New()
 	_, err = io.Copy(hash, body)
@@ -68,6 +68,7 @@ func CalculateSHA256(body io.Reader) (sha string, err error) {
 	return
 }
 
+// checkArgs validates positional arguments for a Cobra command.
 func checkArgs(worksWithoutArgs bool) cobra.PositionalArgs {
 	return func(_ *cobra.Command, args []string) (err error) {
 		if !worksWithoutArgs && len(args) == 0 {
@@ -77,7 +78,7 @@ func checkArgs(worksWithoutArgs bool) cobra.PositionalArgs {
 	}
 }
 
-// downloadURL downloads the specified URL to the specified directory.
+// downloadURL downloads a file from a URL to a directory and calculates its SHA256 checksum.
 func downloadURL(url string, dir string) (
 	downloadedFilePath string, sha256 string, err error,
 ) {
@@ -122,7 +123,7 @@ func downloadURL(url string, dir string) (
 	return
 }
 
-// extractDownloadedTool extracts the downloaded tool.
+// extractDownloadedTool extracts a tool from an archive or verifies its binary.
 func extractDownloadedTool(tool api.Tool, downloadedToolPath string) (string, error) {
 	dir := filepath.Dir(downloadedToolPath)
 
@@ -145,12 +146,14 @@ func extractDownloadedTool(tool api.Tool, downloadedToolPath string) (string, er
 	return extractedToolPath, nil
 }
 
+// isArchiveFile checks if a file is an archive based on its extension.
 func isArchiveFile(filePath string) bool {
 	return strings.HasSuffix(filePath, ".tar.gz") ||
 		strings.HasSuffix(filePath, ".tgz") ||
 		strings.HasSuffix(filePath, ".zip")
 }
 
+// extractFromArchive extracts a tool binary from an archive file.
 func extractFromArchive(tool api.Tool, archivePath, dir string) (string, error) {
 	archiveFS, err := archives.FileSystem(context.Background(), archivePath, nil)
 	if err != nil {
@@ -181,6 +184,7 @@ func extractFromArchive(tool api.Tool, archivePath, dir string) (string, error) 
 	return extractedToolPath, nil
 }
 
+// isMatchingBinary checks if a file name matches the expected binary name for a tool.
 func isMatchingBinary(tool api.Tool, filePath string) bool {
 	base := filepath.Base(filePath)
 	return base == tool.Name ||
@@ -188,6 +192,7 @@ func isMatchingBinary(tool api.Tool, filePath string) bool {
 		base == tool.Name+"_"+runtime.GOOS+"_"+runtime.GOARCH
 }
 
+// extractBinary extracts a binary file from an archive to a directory.
 func extractBinary(archiveFS fs.FS, srcPath, destDir string) (string, error) {
 	src, err := archiveFS.Open(srcPath)
 	if err != nil {
@@ -209,7 +214,7 @@ func extractBinary(archiveFS fs.FS, srcPath, destDir string) (string, error) {
 	return destPath, nil
 }
 
-// getToolBinaryVersion returns the version of the tool binary.
+// getToolBinaryVersion retrieves the version of a tool binary by executing it.
 func getToolBinaryVersion(
 	toolPath string, versionArgs []string,
 ) (version *semver.Version, err error) {
@@ -243,6 +248,7 @@ func getToolBinaryVersion(
 	return
 }
 
+// isToolInstalled checks if a tool is installed by searching in the system's PATH.
 func isToolInstalled(toolName string) (installed bool, err error) {
 	installedToolPath, err := which(toolName)
 	if err != nil {
@@ -254,6 +260,7 @@ func isToolInstalled(toolName string) (installed bool, err error) {
 	return
 }
 
+// prependToolName formats a message by prepending the tool's name for readability.
 func prependToolName(tool api.Tool, allTools []api.Tool, message ...string) string {
 	if len(allTools) == 1 {
 		return strings.Join(message, " ")
@@ -272,6 +279,7 @@ func prependToolName(tool api.Tool, allTools []api.Tool, message ...string) stri
 		strings.Join(message, " ")
 }
 
+// stripVersionsFromArgs removes version suffixes from CLI arguments.
 func stripVersionsFromArgs(args []string) []string {
 	var strippedArgs []string
 	for _, arg := range args {
@@ -284,6 +292,7 @@ func stripVersionsFromArgs(args []string) []string {
 	return strippedArgs
 }
 
+// which locates the full path of a tool binary in the system's PATH.
 func which(toolName string) (path string, err error) {
 	which := exec.Command("which", toolName)
 	out, err := which.Output()
@@ -297,6 +306,7 @@ func which(toolName string) (path string, err error) {
 	return
 }
 
+// wrapInQuotesIfContainsSpace wraps a string in quotes if it contains spaces.
 func wrapInQuotesIfContainsSpace(s string) string {
 	if strings.Contains(s, " ") {
 		return fmt.Sprintf("\"%s\"", s)

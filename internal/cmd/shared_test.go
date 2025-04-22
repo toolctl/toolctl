@@ -24,6 +24,7 @@ import (
 	"github.com/toolctl/toolctl/internal/cmd"
 )
 
+// TestArgsToTools tests the ArgsToTools function, ensuring correct parsing of tool names and versions.
 func TestArgsToTools(t *testing.T) {
 	type args struct {
 		args           []string
@@ -124,6 +125,7 @@ type test struct {
 	wantFiles                   []APIFile
 }
 
+// setupPreinstallTempDir creates a temporary directory for preinstalled tools and sets up symlinks if needed.
 func setupPreinstallTempDir(t *testing.T, tt test) (preinstallTempDir string) {
 	preinstallTempDir, err := os.MkdirTemp("", "toolctl-test-install-*")
 	if err != nil {
@@ -166,6 +168,7 @@ func setupPreinstallTempDir(t *testing.T, tt test) (preinstallTempDir string) {
 	return
 }
 
+// setupRemoteAPI initializes a mock remote API and download server for testing.
 func setupRemoteAPI(supportedTools []supportedTool) (
 	toolctlAPI api.ToolctlAPI, apiServer *httptest.Server,
 	downloadServer *httptest.Server, err error,
@@ -228,6 +231,7 @@ func setupRemoteAPI(supportedTools []supportedTool) (
 	return
 }
 
+// setupLocalAPI sets up a mock local API filesystem and optionally creates metadata.
 func setupLocalAPI(supportedTools []supportedTool, createTopLevelMeta bool) (
 	localAPIFS afero.Fs, downloadServer *httptest.Server, err error,
 ) {
@@ -286,6 +290,7 @@ type APIFile struct {
 	Contents string
 }
 
+// setupDownloadServer creates a mock download server using an in-memory filesystem.
 func setupDownloadServer() (
 	downloadServerFS afero.Fs, downloadServer *httptest.Server, err error,
 ) {
@@ -300,6 +305,7 @@ func setupDownloadServer() (
 	return
 }
 
+// calculateSHA256 computes the SHA256 checksum of a tar.gz file for integrity verification.
 func calculateSHA256(
 	downloadFS afero.Fs, tarGzFilePath string,
 ) (sha256 string, err error) {
@@ -317,6 +323,7 @@ func calculateSHA256(
 	return
 }
 
+// checkWantOut compares the test output with the expected output or regex.
 func checkWantOut(t *testing.T, tt test, buf *bytes.Buffer) {
 	if tt.wantOut == "" && tt.wantOutRegex == "" {
 		t.Fatalf("Either wantOut or wantOutRegex must be set")
@@ -343,6 +350,7 @@ func checkWantOut(t *testing.T, tt test, buf *bytes.Buffer) {
 	}
 }
 
+// supportedToolToDownloadFile creates a tar.gz file for a tool and calculates its SHA256 checksum.
 func supportedToolToDownloadFile(
 	downloadServerFS afero.Fs, supportedTool supportedTool,
 ) (sha256 string, err error) {
@@ -378,7 +386,7 @@ func supportedToolToDownloadFile(
 	return
 }
 
-// Update createTarGzFile to use archives for creating compatible .tar.gz files
+// createTarGzFile compresses a tar file into a tar.gz file using gzip.
 func createTarGzFile(
 	tarFilePath string, downloadServerFS afero.Fs,
 ) (tarGzFilePath string, err error) {
@@ -408,7 +416,7 @@ func createTarGzFile(
 	return
 }
 
-// Update createTarFile to use tar.Writer for creating tar files
+// createTarFile creates a tar file from a binary file for testing purposes.
 func createTarFile(
 	downloadServerFS afero.Fs, filePath string,
 ) (tarFilePath string, err error) {
@@ -451,6 +459,7 @@ func createTarFile(
 	return
 }
 
+// createBinaryFile generates a mock binary file for a tool in the test environment.
 func createBinaryFile(
 	downloadServerFS afero.Fs, supportedTool supportedTool,
 ) (filePath string, err error) {
@@ -474,6 +483,7 @@ echo v`+supportedTool.binaryVersion+`
 	return
 }
 
+// supportedToolToAPIContents generates API metadata files for a tool, including download URLs and versions.
 func supportedToolToAPIContents(
 	supportedTool supportedTool, downloadServerURL string, sha256 string,
 ) (apiFiles []APIFile) {
@@ -524,6 +534,7 @@ sha256: %s
 	return
 }
 
+// runInstallUpgradeTests executes tests for install or upgrade commands, verifying results.
 func runInstallUpgradeTests(
 	t *testing.T, tests []test, installOrUpgrade string,
 ) {
@@ -605,6 +616,7 @@ func runInstallUpgradeTests(
 	}
 }
 
+// setupInstallTempDir creates a temporary directory for tool installation and updates PATH if needed.
 func setupInstallTempDir(t *testing.T, tt test) (installTempDir string) {
 	installTempDir, err := os.MkdirTemp("", "toolctl-test-install-*")
 	if err != nil {
