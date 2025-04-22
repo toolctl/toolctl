@@ -123,69 +123,90 @@ func downloadURL(url string, dir string) (
 }
 
 // extractDownloadedTool extracts the downloaded tool.
-func extractDownloadedTool(tool api.Tool, downloadedToolPath string) (
-	extractedToolPath string, err error,
-) {
+func extractDownloadedTool(tool api.Tool, downloadedToolPath string) (string, error) {
 	dir := filepath.Dir(downloadedToolPath)
 
-	// Extract the tool if it's an archive file
-	if strings.HasSuffix(downloadedToolPath, ".tar.gz") ||
-		strings.HasSuffix(downloadedToolPath, ".tgz") ||
-		strings.HasSuffix(downloadedToolPath, ".zip") {
-		// Use archives.FileSystem to handle the archive
-		archiveFS, err := archives.FileSystem(context.Background(), downloadedToolPath, nil)
+	var extractedToolPath string
+	if isArchiveFile(downloadedToolPath) {
+		var err error
+		extractedToolPath, err = extractFromArchive(tool, downloadedToolPath, dir)
 		if err != nil {
-			return "", fmt.Errorf("failed to open archive: %w", err)
-		}
-
-		// Define a custom error to signal when the binary is located
-		var binaryLocatedError = errors.New("binary located")
-
-		// Walk through the archive to locate the binary and extract only it
-		err = fs.WalkDir(archiveFS, ".", func(path string, d fs.DirEntry, err error) error {
-			if err != nil {
-				return err
-			}
-			if !d.IsDir() {
-				if filepath.Base(path) == tool.Name ||
-					filepath.Base(path) == tool.Name+"-"+runtime.GOOS+"-"+runtime.GOARCH ||
-					filepath.Base(path) == tool.Name+"_"+runtime.GOOS+"_"+runtime.GOARCH {
-					src, err := archiveFS.Open(path)
-					if err != nil {
-						return err
-					}
-					defer src.Close()
-
-					extractedToolPath = filepath.Join(dir, filepath.Base(path))
-					dest, err := os.Create(extractedToolPath)
-					if err != nil {
-						return err
-					}
-					defer dest.Close()
-
-					if _, err := io.Copy(dest, src); err != nil {
-						return err
-					}
-
-					return binaryLocatedError
-				}
-			}
-			return nil
-		})
-		if err != nil && !errors.Is(err, binaryLocatedError) {
 			return "", err
 		}
-	}
-
-	// If not an archive, use the downloaded file directly
-	if extractedToolPath == "" {
+	} else {
 		extractedToolPath = downloadedToolPath
 	}
 
-	// Make sure the binary is executable
-	err = os.Chmod(extractedToolPath, 0755)
+	// Ensure the binary is executable
+	if err := os.Chmod(extractedToolPath, 0755); err != nil {
+		return "", fmt.Errorf("failed to set executable permissions: %w", err)
+	}
 
-	return
+	return extractedToolPath, nil
+}
+
+func isArchiveFile(filePath string) bool {
+	return strings.HasSuffix(filePath, ".tar.gz") ||
+		strings.HasSuffix(filePath, ".tgz") ||
+		strings.HasSuffix(filePath, ".zip")
+}
+
+func extractFromArchive(tool api.Tool, archivePath, dir string) (string, error) {
+	archiveFS, err := archives.FileSystem(context.Background(), archivePath, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to open archive: %w", err)
+	}
+
+	var extractedToolPath string
+	binaryLocatedError := errors.New("binary located")
+
+	err = fs.WalkDir(archiveFS, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() && isMatchingBinary(tool, path) {
+			extractedToolPath, err = extractBinary(archiveFS, path, dir)
+			if err != nil {
+				return err
+			}
+			return binaryLocatedError
+		}
+		return nil
+	})
+
+	if err != nil && !errors.Is(err, binaryLocatedError) {
+		return "", err
+	}
+
+	return extractedToolPath, nil
+}
+
+func isMatchingBinary(tool api.Tool, filePath string) bool {
+	base := filepath.Base(filePath)
+	return base == tool.Name ||
+		base == tool.Name+"-"+runtime.GOOS+"-"+runtime.GOARCH ||
+		base == tool.Name+"_"+runtime.GOOS+"_"+runtime.GOARCH
+}
+
+func extractBinary(archiveFS fs.FS, srcPath, destDir string) (string, error) {
+	src, err := archiveFS.Open(srcPath)
+	if err != nil {
+		return "", err
+	}
+	defer src.Close()
+
+	destPath := filepath.Join(destDir, filepath.Base(srcPath))
+	dest, err := os.Create(destPath)
+	if err != nil {
+		return "", err
+	}
+	defer dest.Close()
+
+	if _, err := io.Copy(dest, src); err != nil {
+		return "", err
+	}
+
+	return destPath, nil
 }
 
 // getToolBinaryVersion returns the version of the tool binary.
