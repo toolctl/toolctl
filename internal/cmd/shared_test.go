@@ -368,7 +368,7 @@ func supportedToolToDownloadFile(
 		return
 	}
 
-	tarFilePath, err := createTarFile(downloadServerFS, filePath)
+	tarFilePath, err := createTarFile(downloadServerFS, filePath, supportedTool)
 	if err != nil {
 		return
 	}
@@ -418,7 +418,7 @@ func createTarGzFile(
 
 // createTarFile creates a tar file from a binary file for testing purposes.
 func createTarFile(
-	downloadServerFS afero.Fs, filePath string,
+	downloadServerFS afero.Fs, filePath string, supportedTool supportedTool,
 ) (tarFilePath string, err error) {
 	tarFilePath = filePath + ".tar"
 	tarFile, err := downloadServerFS.Create(tarFilePath)
@@ -442,7 +442,7 @@ func createTarFile(
 	}
 
 	header := &tar.Header{
-		Name: filepath.Base(filePath),
+		Name: filepath.Join(supportedTool.tarGzSubdir, supportedTool.tarGzBinaryName),
 		Size: fileInfo.Size(),
 		Mode: int64(fileInfo.Mode()),
 	}
