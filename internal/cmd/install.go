@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/fs"
 	"os"
 	"os/exec"
 	"os/user"
@@ -265,49 +264,6 @@ func infoPrintInstalledVersion(
 			tool, allTools, "💁 For more details, run: toolctl info "+tool.Name,
 		),
 	)
-
-	return
-}
-
-type binaryLocatedError struct{}
-
-func (b binaryLocatedError) Error() string {
-	return "binary located"
-}
-
-func locateExtractedBinary(dir string, tool api.Tool) (
-	extractedBinaryPath string, err error,
-) {
-	err = filepath.WalkDir(dir,
-		func(path string, d fs.DirEntry, _ error) error {
-			if d.IsDir() {
-				return nil
-			}
-
-			if filepath.Base(path) == tool.Name ||
-				filepath.Base(path) == tool.Name+"-"+runtime.GOOS+"-"+runtime.GOARCH ||
-				filepath.Base(path) == tool.Name+"_"+runtime.GOOS+"_"+runtime.GOARCH {
-				extractedBinaryPath = path
-				return fmt.Errorf("%w", binaryLocatedError{})
-			}
-
-			return nil
-		},
-	)
-
-	if err != nil {
-		if !errors.Is(err, binaryLocatedError{}) {
-			return
-		}
-		err = nil
-	}
-
-	if extractedBinaryPath == "" {
-		err = fmt.Errorf(
-			"failed to locate extracted binary for %s",
-			tool.Name,
-		)
-	}
 
 	return
 }

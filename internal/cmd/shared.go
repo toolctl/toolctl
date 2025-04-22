@@ -1,20 +1,23 @@
 package cmd
 
 import (
+	"context"
 	"crypto/sha256"
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"net/http"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 
 	"github.com/Masterminds/semver"
-	"github.com/mholt/archiver/v3"
+	"github.com/mholt/archives"
 	"github.com/spf13/cobra"
 	"github.com/toolctl/toolctl/internal/api"
 )
@@ -125,21 +128,57 @@ func extractDownloadedTool(tool api.Tool, downloadedToolPath string) (
 ) {
 	dir := filepath.Dir(downloadedToolPath)
 
-	// Extract the tool if it's a .tar.gz file
+	// Extract the tool if it's an archive file
 	if strings.HasSuffix(downloadedToolPath, ".tar.gz") ||
 		strings.HasSuffix(downloadedToolPath, ".tgz") ||
 		strings.HasSuffix(downloadedToolPath, ".zip") {
-		// Extract the downloaded file
-		err = archiver.Unarchive(downloadedToolPath, dir)
+		// Use archives.FileSystem to handle the archive
+		archiveFS, err := archives.FileSystem(context.Background(), downloadedToolPath, nil)
 		if err != nil {
-			return
+			return "", fmt.Errorf("failed to open archive: %w", err)
 		}
-		// Locate the extracted binary
-		extractedToolPath, err = locateExtractedBinary(dir, tool)
-		if err != nil {
-			return
+
+		// Define a custom error to signal when the binary is located
+		var binaryLocatedError = errors.New("binary located")
+
+		// Walk through the archive to locate the binary and extract only it
+		err = fs.WalkDir(archiveFS, ".", func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			if !d.IsDir() {
+				if filepath.Base(path) == tool.Name ||
+					filepath.Base(path) == tool.Name+"-"+runtime.GOOS+"-"+runtime.GOARCH ||
+					filepath.Base(path) == tool.Name+"_"+runtime.GOOS+"_"+runtime.GOARCH {
+					src, err := archiveFS.Open(path)
+					if err != nil {
+						return err
+					}
+					defer src.Close()
+
+					extractedToolPath = filepath.Join(dir, filepath.Base(path))
+					dest, err := os.Create(extractedToolPath)
+					if err != nil {
+						return err
+					}
+					defer dest.Close()
+
+					if _, err := io.Copy(dest, src); err != nil {
+						return err
+					}
+
+					return binaryLocatedError
+				}
+			}
+			return nil
+		})
+		if err != nil && !errors.Is(err, binaryLocatedError) {
+			return "", err
 		}
-	} else {
+	}
+
+	// If not an archive, use the downloaded file directly
+	if extractedToolPath == "" {
 		extractedToolPath = downloadedToolPath
 	}
 

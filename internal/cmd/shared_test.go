@@ -1,7 +1,9 @@
 package cmd_test
 
 import (
+	"archive/tar"
 	"bytes"
+	"compress/gzip"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -13,8 +15,9 @@ import (
 	"strings"
 	"testing"
 
+	"io"
+
 	"github.com/google/go-cmp/cmp"
-	"github.com/mholt/archiver/v3"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"github.com/toolctl/toolctl/internal/api"
@@ -357,7 +360,7 @@ func supportedToolToDownloadFile(
 		return
 	}
 
-	tarFilePath, err := createTarFile(downloadServerFS, filePath, supportedTool)
+	tarFilePath, err := createTarFile(downloadServerFS, filePath)
 	if err != nil {
 		return
 	}
@@ -375,35 +378,39 @@ func supportedToolToDownloadFile(
 	return
 }
 
+// Update createTarGzFile to use archives for creating compatible .tar.gz files
 func createTarGzFile(
 	tarFilePath string, downloadServerFS afero.Fs,
 ) (tarGzFilePath string, err error) {
 	tarGzFilePath = tarFilePath + ".gz"
 
-	tarFileIn, err := downloadServerFS.Open(tarFilePath)
+	tarFile, err := downloadServerFS.Open(tarFilePath)
 	if err != nil {
 		return
 	}
+	defer tarFile.Close()
 
 	tarGzFile, err := downloadServerFS.Create(tarGzFilePath)
 	if err != nil {
 		return
 	}
+	defer tarGzFile.Close()
 
-	tarGzFileOut, err := downloadServerFS.OpenFile(
-		tarGzFile.Name(), os.O_WRONLY, 0644,
-	)
+	// Use gzip writer for compression
+	gzipWriter := gzip.NewWriter(tarGzFile)
+	defer gzipWriter.Close()
+
+	_, err = io.Copy(gzipWriter, tarFile)
 	if err != nil {
 		return
 	}
 
-	err = archiver.NewGz().Compress(tarFileIn, tarGzFileOut)
-
 	return
 }
 
+// Update createTarFile to use tar.Writer for creating tar files
 func createTarFile(
-	downloadServerFS afero.Fs, filePath string, supportedTool supportedTool,
+	downloadServerFS afero.Fs, filePath string,
 ) (tarFilePath string, err error) {
 	tarFilePath = filePath + ".tar"
 	tarFile, err := downloadServerFS.Create(tarFilePath)
@@ -412,37 +419,31 @@ func createTarFile(
 	}
 	defer tarFile.Close()
 
-	tarFileOut, err := downloadServerFS.OpenFile(
-		tarFile.Name(), os.O_WRONLY, 0644,
-	)
-	if err != nil {
-		return
-	}
-
-	tar := archiver.NewTar()
-	err = tar.Create(tarFileOut)
-	if err != nil {
-		return
-	}
+	tarWriter := tar.NewWriter(tarFile)
+	defer tarWriter.Close()
 
 	inFile, err := downloadServerFS.Open(filePath)
 	if err != nil {
 		return
 	}
+	defer inFile.Close()
 
-	inFileStat, err := inFile.Stat()
+	fileInfo, err := inFile.Stat()
 	if err != nil {
 		return
 	}
 
-	err = tar.Write(archiver.File{
-		FileInfo: archiver.FileInfo{
-			FileInfo: inFileStat,
-			CustomName: filepath.Join(
-				supportedTool.tarGzSubdir, supportedTool.tarGzBinaryName),
-		},
-		ReadCloser: inFile,
-	})
+	header := &tar.Header{
+		Name: filepath.Base(filePath),
+		Size: fileInfo.Size(),
+		Mode: int64(fileInfo.Mode()),
+	}
+	err = tarWriter.WriteHeader(header)
+	if err != nil {
+		return
+	}
+
+	_, err = io.Copy(tarWriter, inFile)
 	if err != nil {
 		return
 	}
