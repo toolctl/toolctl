@@ -1,10 +1,10 @@
-package utils_test
+package sysutil_test
 
 import (
 	"testing"
 
 	"github.com/spf13/viper"
-	"github.com/toolctl/toolctl/internal/utils"
+	"github.com/toolctl/toolctl/internal/sysutil"
 )
 
 func TestRequireConfigString(t *testing.T) {
@@ -41,7 +41,7 @@ func TestRequireConfigString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotValue, err := utils.RequireConfigString(tt.args.key)
+			gotValue, err := sysutil.RequireConfigString(tt.args.key)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("RequireConfigString() error = %v, wantErr %v", err, tt.wantErr)
 				return
