@@ -1,11 +1,11 @@
-package utils_test
+package sysutil_test
 
 import (
 	"os"
 	"strings"
 	"testing"
 
-	"github.com/toolctl/toolctl/internal/utils"
+	"github.com/toolctl/toolctl/internal/sysutil"
 )
 
 var (
@@ -49,7 +49,7 @@ func TestCopyFile(t *testing.T) {
 
 	// Create destination file and copy content from the original file
 	destFilePath, _ := createEmptyfile()
-	err = utils.CopyFile(sourceFilePath.Name(), destFilePath.Name())
+	err = sysutil.CopyFile(sourceFilePath.Name(), destFilePath.Name())
 	if err != nil {
 		t.Errorf("failed to copy file to destination")
 	}
@@ -80,7 +80,7 @@ func TestMoveFile(t *testing.T) {
 	destFilePath, _ := createEmptyfile()
 
 	// Move the original file to the destination path
-	err = utils.MoveFile(sourceFilePath.Name(), destFilePath.Name())
+	err = sysutil.MoveFile(sourceFilePath.Name(), destFilePath.Name())
 	if err != nil {
 		t.Errorf("failed to move file to destination")
 	}
@@ -107,7 +107,7 @@ func TestSetPermissions(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to create the file")
 	}
-	err = utils.SetPermissions(file.Name())
+	err = sysutil.SetPermissions(file.Name())
 	if err != nil {
 		t.Errorf("failed to set file permissions")
 	}

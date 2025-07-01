@@ -15,7 +15,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/toolctl/toolctl/internal/api"
-	"github.com/toolctl/toolctl/internal/utils"
+	"github.com/toolctl/toolctl/internal/sysutil"
 	"golang.org/x/sys/unix"
 )
 
@@ -72,7 +72,7 @@ func newRunInstall(
 func checkInstallDir(
 	toolctlWriter io.Writer, installOrUpgrade string, args []string,
 ) (installDir string, err error) {
-	installDir, err = utils.RequireConfigString("InstallDir")
+	installDir, err = sysutil.RequireConfigString("InstallDir")
 	if err != nil {
 		return
 	}
@@ -183,13 +183,13 @@ func install(
 
 	// Install the tool
 	installPath := filepath.Join(installDir, tool.Name)
-	err = utils.MoveFile(extractedToolPath, installPath)
+	err = sysutil.MoveFile(extractedToolPath, installPath)
 	if err != nil {
 		return
 	}
 
 	//⋅Set⋅file⋅permissions⋅to⋅be⋅executable
-	err = utils.SetPermissions(installPath)
+	err = sysutil.SetPermissions(installPath)
 	if err != nil {
 		return
 	}

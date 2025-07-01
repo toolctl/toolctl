@@ -1,4 +1,4 @@
-package utils
+package sysutil
 
 import (
 	"fmt"

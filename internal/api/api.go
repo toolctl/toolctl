@@ -4,7 +4,7 @@ package api
 import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	"github.com/toolctl/toolctl/internal/utils"
+	"github.com/toolctl/toolctl/internal/sysutil"
 )
 
 // Location represents the location of the API, currently remote or local.
@@ -40,7 +40,7 @@ func New(
 
 	if localFlag || defaultLocation == Local {
 		var localAPIBasePath string
-		localAPIBasePath, err = utils.RequireConfigString("LocalAPIBasePath")
+		localAPIBasePath, err = sysutil.RequireConfigString("LocalAPIBasePath")
 		if err != nil {
 			return
 		}
@@ -48,7 +48,7 @@ func New(
 	}
 
 	var remoteAPIBaseURL string
-	remoteAPIBaseURL, err = utils.RequireConfigString("RemoteAPIBaseURL")
+	remoteAPIBaseURL, err = sysutil.RequireConfigString("RemoteAPIBaseURL")
 	if err != nil {
 		return
 	}
