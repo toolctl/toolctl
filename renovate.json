@@ -1,7 +1,6 @@
 {
   "extends": [
-    "config:recommended",
-    "helpers:pinGitHubActionDigests"
+    "config:best-practices"
   ],
   "automerge": true,
   "platformAutomerge": true,
