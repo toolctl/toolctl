@@ -7,7 +7,7 @@ require (
 	github.com/google/go-cmp v0.7.0
 	github.com/mholt/archives v0.1.3
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/spf13/afero v1.14.0
+	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/viper v1.20.1
 	golang.org/x/sys v0.36.0
