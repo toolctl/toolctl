@@ -5,7 +5,7 @@ go 1.24.2
 require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/google/go-cmp v0.7.0
-	github.com/mholt/archives v0.1.4
+	github.com/mholt/archives v0.1.5
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.1
@@ -30,7 +30,7 @@ require (
 	github.com/klauspost/pgzip v1.2.6 // indirect
 	github.com/mikelolasagasti/xz v1.0.1 // indirect
 	github.com/minio/minlz v1.0.1 // indirect
-	github.com/nwaples/rardecode/v2 v2.1.1 // indirect
+	github.com/nwaples/rardecode/v2 v2.2.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/pierrec/lz4/v4 v4.1.22 // indirect
 	github.com/sagikazarmark/locafero v0.11.0 // indirect
