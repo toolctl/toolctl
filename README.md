@@ -81,6 +81,7 @@ Currently, `toolctl` supports the following tools:
 - [age](https://age-encryption.org/): A simple, modern and secure encryption tool
 - [age-keygen](https://age-encryption.org/): A simple, modern and secure encryption tool
 - [air](https://github.com/cosmtrek/air): Live reload for Go apps
+- [atlas](https://atlasgo.io): Manage your database schema as code
 - [chezmoi](https://chezmoi.io/): Manage your dotfiles across multiple diverse machines, securely
 - [cloudflared](https://github.com/cloudflare/cloudflared): Cloudflare Tunnel client
 - [dive](https://github.com/wagoodman/dive): A tool for exploring each layer in a docker image
