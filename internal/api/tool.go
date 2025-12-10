@@ -1,3 +1,4 @@
+//nolint:revive // package name is intentionally concise
 package api
 
 // Tool describes a tool.
