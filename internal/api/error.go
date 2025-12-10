@@ -1,3 +1,4 @@
+//nolint:revive // package name is intentionally concise
 package api
 
 // NotFoundError is returned when an API resource could not be found.

@@ -1,4 +1,6 @@
 // Package api contains everything related to the toolctl API.
+//
+//nolint:revive // package name is intentionally concise
 package api
 
 import (
