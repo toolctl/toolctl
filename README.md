@@ -93,6 +93,7 @@ Currently, `toolctl` supports the following tools:
 - [golangci-lint](https://golangci-lint.run/): Fast linters runner for Go
 - [goreleaser](https://goreleaser.com/): Deliver Go binaries as fast and easily as possible
 - [gping](https://github.com/orf/gping): Ping, but with a graph
+- [grype](https://github.com/anchore/grype): A vulnerability scanner for container images and filesystems
 - [helm](https://helm.sh/): The Kubernetes package manager
 - [hugo](https://gohugo.io/): The world's fastest framework for building websites
 - [k9s](https://k9scli.io/): Kubernetes CLI to manage your clusters in style
@@ -110,6 +111,7 @@ Currently, `toolctl` supports the following tools:
 - [skaffold](https://skaffold.dev/): Easy and repeatable Kubernetes development
 - [sops](https://github.com/getsops/sops): Simple and flexible tool for managing secrets
 - [stern](https://github.com/stern/stern): Multi pod and container log tailing for Kubernetes
+- [syft](https://github.com/anchore/syft): CLI tool and library for generating a Software Bill of Materials from container images and filesystems
 - [task](https://taskfile.dev/): A task runner / simpler Make alternative written in Go
 - [terraform](https://www.terraform.io/): Infrastructure as code software tool
 - [tkn](https://github.com/tektoncd/cli): A CLI for interacting with Tekton
