@@ -107,6 +107,7 @@ Currently, `toolctl` supports the following tools:
 - [kuberlr](https://github.com/flavio/kuberlr): Simple management of multiple kubectl versions
 - [kustomize](https://kustomize.io/): Template-free customization of Kubernetes configuration
 - [minikube](https://minikube.sigs.k8s.io/): Run Kubernetes locally
+- [mise](https://mise.jdx.dev/): dev tools, env vars, task runner
 - [pulumi](https://www.pulumi.com/): Developer-first infrastructure as code
 - [skaffold](https://skaffold.dev/): Easy and repeatable Kubernetes development
 - [sops](https://github.com/getsops/sops): Simple and flexible tool for managing secrets
