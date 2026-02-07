@@ -2,16 +2,35 @@ version: "2"
 
 linters:
   enable:
+    - errcheck
     - gocyclo
     - lll
     - misspell
     - revive
+
   settings:
+    errcheck:
+      exclude-functions:
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - fmt.Print
+        - fmt.Printf
+        - fmt.Println
     gocyclo:
       min-complexity: 15
+
   exclusions:
-    presets:
-      - std-error-handling
+    rules:
+      # Deferred cleanup operations are typically non-critical
+      - text: "Error return value of `.*(Close|Remove|RemoveAll)` is not checked"
+        linters:
+          - errcheck
+      # os.Setenv in tests is safe to ignore
+      - path: _test\.go
+        text: "Error return value of `os\\.Setenv` is not checked"
+        linters:
+          - errcheck
 
 formatters:
   enable:
