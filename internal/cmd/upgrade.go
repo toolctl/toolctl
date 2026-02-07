@@ -147,6 +147,9 @@ func upgrade(
 	installedVersion, err := getToolBinaryVersion(
 		installedToolPath, toolMeta.VersionArgs,
 	)
+	if err != nil {
+		return
+	}
 
 	// Check if the installed version is newer than the latest version
 	if installedVersion.GreaterThan(latestVersion) {
