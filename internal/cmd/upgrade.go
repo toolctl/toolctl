@@ -150,9 +150,13 @@ func upgrade(
 
 	// Check if the installed version is newer than the latest version
 	if installedVersion.GreaterThan(latestVersion) {
-		err = fmt.Errorf(
-			"%s is already at v%s, but the latest version is v%s",
-			tool.Name, installedVersion, latestVersion,
+		fmt.Fprintln(
+			toolctlWriter, prependToolName(
+				tool, allTools, fmt.Sprintf(
+					"🚫 Skipping: %s is already at v%s, but the latest version is v%s",
+					tool.Name, installedVersion, latestVersion,
+				),
+			),
 		)
 		return
 	}

@@ -269,6 +269,28 @@ $`,
 		},
 		// -------------------------------------------------------------------------
 		{
+			name: "supported tool, installed version newer than latest",
+			supportedTools: []supportedTool{
+				{
+					name:    "toolctl-test-tool",
+					version: "0.1.0",
+					tarGz:   true,
+				},
+			},
+			preinstalledTools: []preinstalledTool{
+				{
+					name: "toolctl-test-tool",
+					fileContents: `#!/bin/sh
+echo "v0.2.0"
+`,
+				},
+			},
+			cliArgs: []string{"toolctl-test-tool"},
+			wantOut: `🚫 Skipping: toolctl-test-tool is already at v0.2.0, but the latest version is v0.1.0
+`,
+		},
+		// -------------------------------------------------------------------------
+		{
 			name:    "unsupported tool with version",
 			cliArgs: []string{"toolctl-unsupported-test-tool@1.0.0"},
 			wantErr: true,
