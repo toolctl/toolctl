@@ -43,5 +43,5 @@ jobs:
         with:
           go-version-file: '.go-version'
 
-      - name: Run the tests and generate the coverage profile
+      - name: Run the tests
         run: go test ./...
