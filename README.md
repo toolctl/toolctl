@@ -9,6 +9,14 @@
 
 `toolctl` helps you manage your tools on Linux and macOS.
 
+## ⚠️ Project Archived
+
+This project is no longer maintained.
+We recommend [mise](https://mise.jdx.dev/) as a modern alternative. 
+It offers all the core functionality of toolctl and much more.
+
+Thanks to everyone who contributed to toolctl!
+
 ## Installation
 
 ### Automatic
